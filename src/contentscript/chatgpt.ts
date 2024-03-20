@@ -1,14 +1,18 @@
 import type { summarySourceText } from "../lib/utils";
-let promptTemplate =
-  "Condense the provided text into concise bulletpoints, selecting a fitting emoji for each, and respond in {{SELECTED_LANGUAGE}} using the content: {{CONTENT}}";
+import { promptTemplate, defaultMaxCharsToSplit } from "../lib/utils";
 let lang = "";
+let maxCharsToSplit = defaultMaxCharsToSplit;
 let prompt = promptTemplate;
-chrome.storage.sync.get(["prompt", "lang"], (data) => {
+let button: HTMLButtonElement | null = null;
+chrome.storage.sync.get(["lang", "prompt", "maxCharsToSplit"], (data) => {
   if (data && data.prompt) {
     prompt = data.prompt;
   }
   if (data && data.lang) {
     lang = data.lang;
+  }
+  if (data && data.maxCharsToSplit) {
+    maxCharsToSplit = data.maxCharsToSplit;
   }
   if (lang === "") {
     const languageName = new Intl.DisplayNames(["en"], { type: "language" }).of(
@@ -51,44 +55,111 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
           lang = v;
         }
         break;
+      case "maxCharsToSplit":
+        maxCharsToSplit = newValue as number;
+        break;
     }
   }
 });
+
+const splitTextAtNearestNewline = (
+  text: string,
+  maxChars: number,
+): string[] => {
+  if (text.length <= maxChars) {
+    return [text, ""];
+  }
+
+  let splitIndex = text.substring(0, maxChars).lastIndexOf("\n");
+  if (splitIndex === -1) {
+    // 改行コードが見つからない場合は、maxCharsで分割
+    splitIndex = maxChars;
+  }
+
+  return [text.substring(0, splitIndex), text.substring(splitIndex)];
+};
+
+const injectText = (text: string) => {
+  const textarea = document.getElementById(
+    "prompt-textarea",
+  ) as HTMLTextAreaElement;
+  if (!textarea) {
+    console.log("textarea not found");
+    return;
+  }
+  textarea.value = text;
+  textarea.style.height = "auto";
+  textarea.style.height = textarea.scrollHeight + "px";
+  const length = textarea.value.length;
+  textarea.selectionStart = length;
+  textarea.selectionEnd = length;
+  textarea.dispatchEvent(
+    new Event("input", {
+      bubbles: true,
+      cancelable: true,
+    }),
+  );
+  setTimeout(() => {
+    textarea.focus();
+    textarea.scrollTop = textarea.scrollHeight;
+  }, 1000);
+};
+
+const addButton = (text: string, title: string, url: string, no: number) => {
+  button = document.createElement("button");
+  button.textContent = `More.. part${no + 1}`;
+  button.style.position = "fixed";
+  button.style.right = "20px";
+  button.style.bottom = "20px";
+  button.style.backgroundColor = "#0d6efd";
+  button.style.borderColor = "#0d6efd";
+  button.style.color = "#fff;";
+  button.style.borderRadius = "5px";
+  button.style.padding = "0 5px";
+  document.body.appendChild(button);
+
+  button.addEventListener("click", () => {
+    const [firstPart, remainingPart] = splitTextAtNearestNewline(
+      text,
+      maxCharsToSplit,
+    );
+    const variables = {
+      TITLE: title,
+      CONTENT: firstPart,
+      URL: url,
+      SELECTED_LANGUAGE: lang,
+    };
+    injectText(replaceTemplateVariables(prompt, variables));
+    if (button) {
+      button.remove();
+    }
+    if (remainingPart.length > 0) {
+      addButton(remainingPart.trim(), title, url, no + 1);
+    }
+  });
+};
 
 if (window !== window.top) {
   window.addEventListener("message", (response) => {
     const data = response.data as summarySourceText;
     if (data.title && data.text) {
+      if (button) {
+        button.remove();
+      }
+      const [firstPart, remainingPart] = splitTextAtNearestNewline(
+        cleanUpText(data.text),
+        maxCharsToSplit,
+      );
       const variables = {
         TITLE: data.title,
-        CONTENT: cleanUpText(data.text),
+        CONTENT: firstPart,
         URL: data.url,
         SELECTED_LANGUAGE: lang,
       };
-      const filledPrompt = replaceTemplateVariables(promptTemplate, variables);
-      const textarea = document.getElementById(
-        "prompt-textarea",
-      ) as HTMLTextAreaElement;
-      if (!textarea) {
-        console.log("textarea not found");
-        return;
+      injectText(replaceTemplateVariables(prompt, variables));
+      if (remainingPart.length > 0) {
+        addButton(remainingPart.trim(), data.title, data.url, 1);
       }
-      textarea.value = filledPrompt;
-      textarea.style.height = "auto";
-      textarea.style.height = textarea.scrollHeight + "px";
-      const length = textarea.value.length;
-      textarea.selectionStart = length;
-      textarea.selectionEnd = length;
-      textarea.dispatchEvent(
-        new Event("input", {
-          bubbles: true,
-          cancelable: true,
-        }),
-      );
-      setTimeout(() => {
-        textarea.focus();
-        textarea.scrollTop = textarea.scrollHeight;
-      }, 1000);
     }
   });
 }

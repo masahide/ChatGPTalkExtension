@@ -7,6 +7,10 @@ export type ArticleSnapshot = {
   id: string;
 };
 
+export const defaultMaxCharsToSplit = 4500;
+export const promptTemplate =
+  "Condense the provided text into concise bulletpoints, selecting a fitting emoji for each, and respond in {{SELECTED_LANGUAGE}} using the content: {{CONTENT}}";
+
 export enum ArticleSnapshotType {
   Youtube = "Youtube",
   FullText = "FullText",
@@ -56,8 +60,9 @@ function parseXmlToTranscript(xmlString: string): string {
     const start = textElement.getAttribute("start");
     const text = textElement.textContent;
     if (start && text) {
-      const startSeconds = secondsToHMS(parseFloat(start));
-      transcriptString += `${startSeconds}: ${text}\n`; // 改行区切りで文字列を追加
+      // const startSeconds = secondsToHMS(parseFloat(start));
+      // transcriptString += `${startSeconds}: ${text}\n`; // 改行区切りで文字列を追加
+      transcriptString += `${text}\n`; // 改行区切りで文字列を追加
     }
   }
   return transcriptString.trim();

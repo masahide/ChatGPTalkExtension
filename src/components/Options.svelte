@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { promptTemplate, defaultMaxCharsToSplit } from "../lib/utils";
 
-  const promptTemplate =
-    "Condense the provided text into concise bulletpoints, selecting a fitting emoji for each, and respond in {{SELECTED_LANGUAGE}} using the content: {{CONTENT}}";
   let prompt = promptTemplate;
   let language = "english";
   let message: string | null = null;
+  let maxCharsToSplit = defaultMaxCharsToSplit;
 
   onMount(() => {
     const languageName = new Intl.DisplayNames(["en"], { type: "language" }).of(
@@ -14,12 +14,15 @@
     if (languageName) {
       language = languageName;
     }
-    chrome.storage.sync.get(["prompt", "lang"], (data) => {
+    chrome.storage.sync.get(["lang", "prompt", "maxCharsToSplit"], (data) => {
       if (data && data.prompt) {
         prompt = data.prompt;
       }
       if (data && data.lang) {
         language = data.lang;
+      }
+      if (data && data.maxCharsToSplit) {
+        maxCharsToSplit = data.maxCharsToSplit;
       }
     });
   });
@@ -29,6 +32,7 @@
       .set({
         prompt: prompt,
         lang: language,
+        maxCharsToSplit: maxCharsToSplit,
       })
       .then(() => {
         message = "Updated!";
@@ -69,6 +73,17 @@
       id="prompt"
       wrap="soft"
       bind:value={prompt}
+    />
+  </div>
+  <div class="col-12">
+    <label for="maxCharsToSplit" class="form-label"
+      >Maximum number of characters to split a string into:</label
+    >
+    <input
+      type="number"
+      class="form-control maxCharsToSplit"
+      id="maxCharsToSplit"
+      bind:value={maxCharsToSplit}
     />
   </div>
   <button class="btn btn-primary" type="submit" on:click={handleSave}
