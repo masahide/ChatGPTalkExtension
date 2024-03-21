@@ -7,8 +7,8 @@ const manifest = defineManifest({
   name: "ChatGPTalk Sidebar",
   description:
     "Capture web text, summarize, paste with prompts. Simplifies YouTube transcriptions. THIS EXTENSION IS FOR BETA TESTING.",
-  version: "1.0.1",
-  version_name: "1.0.1 beta",
+  version: "1.0.2",
+  version_name: "1.0.2 beta",
   action: {
     default_title: "Click to open panel",
   },
