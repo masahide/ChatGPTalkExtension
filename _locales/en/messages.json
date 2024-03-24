@@ -1,0 +1,15 @@
+{
+  "name": { "message": "ChatGPTalk Sidebar" },
+  "namefull": { "message": "ChatGPTalk Sidebar" },
+  "description": {
+    "message": "Capture web text, summarize, paste with prompts. Simplifies YouTube transcriptions. THIS EXTENSION IS FOR BETA TESTING."
+  },
+  "title": { "message": "Click to open panel" },
+  "options_title": { "message": "Options Page" },
+  "options_language": { "message": "Language" },
+  "options_prompt": { "message": "Prompt template" },
+  "options_maxCharsToSplit": {
+    "message": "Maximum number of characters to split a string into"
+  },
+  "options_save": { "message": "Save" }
+}

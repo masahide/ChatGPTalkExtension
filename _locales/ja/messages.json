@@ -1,0 +1,15 @@
+{
+  "name": { "message": "ChatGPTalk サイドバー" },
+  "namefull": { "message": "ChatGPTalk サイドバー" },
+  "description": {
+    "message": "ウェブテキストをキャプチャし、要約してプロンプトと一緒に貼り付けます。YouTubeの書き起こしを簡単にします。このエクステンションはベータテストです。"
+  },
+  "title": { "message": "パネルを開く" },
+  "options_title": { "message": "オプション" },
+  "options_language": { "message": "言語" },
+  "options_prompt": { "message": "プロンプトテンプレート" },
+  "options_maxCharsToSplit": {
+    "message": "文字列を分割する最大文字数"
+  },
+  "options_save": { "message": "保存" }
+}

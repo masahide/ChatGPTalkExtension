@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Options from "./Options.svelte";
   import { onMount } from "svelte";
   import { promptTemplate, defaultMaxCharsToSplit } from "../lib/utils";
 
@@ -6,6 +7,15 @@
   let language = "english";
   let message: string | null = null;
   let maxCharsToSplit = defaultMaxCharsToSplit;
+  let optionsLanguage = "";
+  let messages: { [key: string]: string } = {
+    options_title: "",
+    options_language: "",
+    options_updated: "",
+    options_prompt: "",
+    options_maxCharsToSplit: "",
+    options_save: "",
+  };
 
   onMount(() => {
     const languageName = new Intl.DisplayNames(["en"], { type: "language" }).of(
@@ -25,6 +35,9 @@
         maxCharsToSplit = data.maxCharsToSplit;
       }
     });
+    for (const key in messages) {
+      messages[key] = chrome.i18n.getMessage(key);
+    }
   });
 
   const handleSave = () => {
@@ -45,7 +58,7 @@
 </script>
 
 <div class="col-md-5 col-lg-4 order-md-last">
-  <h4 class="mb-5">Options Page1</h4>
+  <h4 class="mb-5">{messages["options_title"]}</h4>
   {#if message}
     <div class="alert alert-success alert-dismissible fade show" role="alert">
       {message}
@@ -58,7 +71,9 @@
     </div>
   {/if}
   <div class="col-12">
-    <label for="language" class="form-label">Language:</label>
+    <label for="language" class="form-label"
+      >{messages["options_language"]}:</label
+    >
     <input
       type="text"
       class="form-control language"
@@ -67,7 +82,7 @@
     />
   </div>
   <div class="col-12">
-    <label for="prompt" class="form-label">Prompt template:</label>
+    <label for="prompt" class="form-label">{messages["options_prompt"]}:</label>
     <textarea
       class="form-control prompt"
       id="prompt"
@@ -77,7 +92,7 @@
   </div>
   <div class="col-12">
     <label for="maxCharsToSplit" class="form-label"
-      >Maximum number of characters to split a string into:</label
+      >{messages["options_maxCharsToSplit"]}</label
     >
     <input
       type="number"
@@ -87,7 +102,7 @@
     />
   </div>
   <button class="btn btn-primary" type="submit" on:click={handleSave}
-    >Save</button
+    >{messages["options_save"]}</button
   >
 </div>
 
