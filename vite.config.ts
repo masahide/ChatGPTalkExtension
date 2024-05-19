@@ -36,9 +36,9 @@ const manifest = defineManifest({
     },
     {
       matches: [
-        "https://chat.openai.com/*",
         "https://chatgpt.com/*",
-        "https://chatgpt.com/",
+        //"https://chatgpt.com/",
+        //"https://chat.openai.com/*",
       ],
       js: ["src/contentscript/chatgpt.ts"],
       all_frames: true,
