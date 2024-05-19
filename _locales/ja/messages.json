@@ -1,8 +1,8 @@
 {
-  "name": { "message": "ChatGPTalk サイドバー" },
+  "name": { "message": "ChatGPTalk Sidebar" },
   "namefull": { "message": "ChatGPTalk サイドバー" },
   "description": {
-    "message": "ウェブテキストをキャプチャし、要約してプロンプトと一緒に貼り付けます。YouTubeの書き起こしを簡単にします。このエクステンションはベータテストです。"
+    "message": "ChatGPTalk サイドバー拡張機能を使うと、ChatGPTを用いてWebページの本文を簡単に要約できます。"
   },
   "title": { "message": "パネルを開く" },
   "options_title": { "message": "オプション" },

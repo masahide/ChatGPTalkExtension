@@ -3,17 +3,8 @@
   import { getSelection, toSummarySource, TextType } from "../lib/utils";
   import { onMount } from "svelte";
 
-  const URL = "https://chat.openai.com/";
+  const URL = "https://chatgpt.com/";
   let isIframeVisible = false;
-
-  chrome.runtime.onMessage.addListener(async function (message, sender) {
-    const snapshot = message.data as ArticleSnapshot;
-    const source = toSummarySource(snapshot);
-    const iframe = document.getElementById("preview") as HTMLIFrameElement;
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage(source, URL);
-    }
-  });
 
   const open = async (currenturl: string) => {
     const iframe = document.getElementById("preview") as HTMLIFrameElement;
@@ -50,9 +41,15 @@
     });
     if (iframe) {
       iframe.src = currenturl;
-    }
-    if (iframe) {
       isIframeVisible = true;
+      chrome.runtime.onMessage.addListener(async function (message, sender) {
+        const snapshot = message.data as ArticleSnapshot;
+        const source = toSummarySource(snapshot);
+        const iframe = document.getElementById("preview") as HTMLIFrameElement;
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage(source, URL);
+        }
+      });
     }
   };
   onMount(() => {

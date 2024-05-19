@@ -3,8 +3,8 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { crx, defineManifest } from "@crxjs/vite-plugin";
 
 const manifest = defineManifest({
-  version: "1.0.3",
-  version_name: "1.0.3 beta",
+  version: "1.0.6",
+  version_name: "1.0.6",
   manifest_version: 3,
   name: "__MSG_namefull__",
   short_name: "__MSG_name__",
@@ -35,7 +35,11 @@ const manifest = defineManifest({
       run_at: "document_start",
     },
     {
-      matches: ["https://chat.openai.com/*"],
+      matches: [
+        "https://chat.openai.com/*",
+        "https://chatgpt.com/*",
+        "https://chatgpt.com/",
+      ],
       js: ["src/contentscript/chatgpt.ts"],
       all_frames: true,
       run_at: "document_idle",

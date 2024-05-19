@@ -139,9 +139,12 @@ const addButton = (text: string, title: string, url: string, no: number) => {
   });
 };
 
+//console.log("load chatgpt.ts");
 if (window !== window.top) {
+  //console.log("window !== window.top. window: ",window);
   window.addEventListener("message", (response) => {
     const data = response.data as summarySourceText;
+    //console.log("Event message: ",response);
     if (data.title && data.text) {
       if (button) {
         button.remove();

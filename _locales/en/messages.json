@@ -2,7 +2,7 @@
   "name": { "message": "ChatGPTalk Sidebar" },
   "namefull": { "message": "ChatGPTalk Sidebar" },
   "description": {
-    "message": "Capture web text, summarize, paste with prompts. Simplifies YouTube transcriptions. THIS EXTENSION IS FOR BETA TESTING."
+    "message": "Using the ChatGPTalk sidebar extension allows you to easily summarize the text of web pages using ChatGPT."
   },
   "title": { "message": "Click to open panel" },
   "options_title": { "message": "Options Page" },
