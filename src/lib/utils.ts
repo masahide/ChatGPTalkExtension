@@ -23,12 +23,16 @@ export enum TextType {
   Transcription = "Transcription",
   FullText = "FullText",
 }
+export type injectData = {
+  source: summarySourceText;
+  prompt: string;
+};
 export type summarySourceText = {
   title: string;
   text: string;
   url: string;
 };
-export function getSelection() {
+export function getSelection(prompt: string) {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
     for (let i = 0; i < tabs.length; i++) {
       let tabid = tabs[i].id;
@@ -36,10 +40,21 @@ export function getSelection() {
         chrome.tabs.sendMessage(tabid, {
           name: TextType.Selection,
           windowID: tabid,
+          prompt: prompt,
         });
       }
     }
   });
+}
+
+export function replaceTemplateVariables(
+  template: string,
+  variables: { [key: string]: string },
+): string {
+  return Object.keys(variables).reduce((currentTemplate, key) => {
+    const regex = new RegExp(`{{${key}}}`, "g");
+    return currentTemplate.replace(regex, variables[key]);
+  }, template);
 }
 function secondsToHMS(seconds: number): string {
   const hours = Math.floor(seconds / 3600);

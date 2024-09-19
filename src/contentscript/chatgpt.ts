@@ -1,13 +1,17 @@
-import type { summarySourceText } from "../lib/utils";
-import { promptTemplate, defaultMaxCharsToSplit } from "../lib/utils";
+import type { injectData } from "../lib/utils";
+import {
+  promptTemplate,
+  defaultMaxCharsToSplit,
+  replaceTemplateVariables,
+} from "../lib/utils";
 let lang = "";
 let maxCharsToSplit = defaultMaxCharsToSplit;
-let prompt = promptTemplate;
+//let prompt = promptTemplate;
 let button: HTMLButtonElement | null = null;
 chrome.storage.sync.get(["lang", "prompt", "maxCharsToSplit"], (data) => {
-  if (data && data.prompt) {
+  /*if (data && data.prompt) {
     prompt = data.prompt;
-  }
+  }*/
   if (data && data.lang) {
     lang = data.lang;
   }
@@ -23,15 +27,6 @@ chrome.storage.sync.get(["lang", "prompt", "maxCharsToSplit"], (data) => {
     }
   }
 });
-function replaceTemplateVariables(
-  template: string,
-  variables: { [key: string]: string },
-): string {
-  return Object.keys(variables).reduce((currentTemplate, key) => {
-    const regex = new RegExp(`{{${key}}}`, "g");
-    return currentTemplate.replace(regex, variables[key]);
-  }, template);
-}
 
 // 文字列を修正する関数
 function cleanUpText(text: string): string {
@@ -46,9 +41,10 @@ function cleanUpText(text: string): string {
 chrome.storage.onChanged.addListener((changes, namespace) => {
   for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
     switch (key) {
-      case "prompt":
+      /*case "prompt":
         prompt = newValue as string;
         break;
+      */
       case "lang":
         let v = newValue as string;
         if (v !== "") {
@@ -105,7 +101,13 @@ const injectText = (text: string) => {
   }, 1000);
 };
 
-const addButton = (text: string, title: string, url: string, no: number) => {
+const addButton = (
+  text: string,
+  prompt: string,
+  title: string,
+  url: string,
+  no: number,
+) => {
   button = document.createElement("button");
   button.textContent = `More.. part${no + 1}`;
   button.style.position = "fixed";
@@ -134,7 +136,7 @@ const addButton = (text: string, title: string, url: string, no: number) => {
       button.remove();
     }
     if (remainingPart.length > 0) {
-      addButton(remainingPart.trim(), title, url, no + 1);
+      addButton(remainingPart.trim(), prompt, title, url, no + 1);
     }
   });
 };
@@ -143,25 +145,31 @@ const addButton = (text: string, title: string, url: string, no: number) => {
 if (window !== window.top) {
   //console.log("window !== window.top. window: ",window);
   window.addEventListener("message", (response) => {
-    const data = response.data as summarySourceText;
+    const data = response.data as injectData;
     //console.log("Event message: ",response);
-    if (data.title && data.text) {
+    if (data.source.title && data.source.text) {
       if (button) {
         button.remove();
       }
       const [firstPart, remainingPart] = splitTextAtNearestNewline(
-        cleanUpText(data.text),
+        cleanUpText(data.source.text),
         maxCharsToSplit,
       );
       const variables = {
-        TITLE: data.title,
+        TITLE: data.source.title,
         CONTENT: firstPart,
-        URL: data.url,
+        URL: data.source.url,
         SELECTED_LANGUAGE: lang,
       };
-      injectText(replaceTemplateVariables(prompt, variables));
+      injectText(replaceTemplateVariables(data.prompt, variables));
       if (remainingPart.length > 0) {
-        addButton(remainingPart.trim(), data.title, data.url, 1);
+        addButton(
+          remainingPart.trim(),
+          data.prompt,
+          data.source.title,
+          data.source.url,
+          1,
+        );
       }
     }
   });
