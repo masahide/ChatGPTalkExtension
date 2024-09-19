@@ -99,7 +99,7 @@ async function getTranscription() {
 }
 
 chrome.runtime.onMessage.addListener(async (request, options) => {
-  //console.log("request.name:", request.name);
+  //console.log(`request.name:${request.name} prompt:${request.prompt}`);
   let url = new URL(window.location.href);
   if (request.name == TextType.Selection) {
     let str = window.getSelection()?.toString();
@@ -118,6 +118,9 @@ chrome.runtime.onMessage.addListener(async (request, options) => {
           id: "",
         },
       });
+      //console.log(
+      //  `getselection sendmessage request.name:${request.name} prompt:${request.prompt}`,
+      //);
       return;
     }
   }
@@ -140,4 +143,7 @@ chrome.runtime.onMessage.addListener(async (request, options) => {
     prompt: request.prompt,
     data: extractContent(),
   });
+  // console.log(
+  //   `full text sendmessage request.name:${request.name} prompt:${request.prompt}`,
+  // );
 });

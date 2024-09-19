@@ -43,6 +43,7 @@ export function getSelection(prompt: string) {
           prompt: prompt,
         });
       }
+      //console.log(`getSelection tabid:${tabid} prompt:${prompt}`);
     }
   });
 }

@@ -95,6 +95,7 @@ const injectText = (text: string) => {
       cancelable: true,
     }),
   );
+  console.log(`injectText text: ${text} textarea:${textarea}`);
   setTimeout(() => {
     textarea.focus();
     textarea.scrollTop = textarea.scrollHeight;
@@ -143,10 +144,10 @@ const addButton = (
 
 //console.log("load chatgpt.ts");
 if (window !== window.top) {
-  //console.log("window !== window.top. window: ",window);
+  //console.log("window !== window.top. window: ", window);
   window.addEventListener("message", (response) => {
     const data = response.data as injectData;
-    //console.log("Event message: ",response);
+    //console.log("Event data: ", data);
     if (data.source.title && data.source.text) {
       if (button) {
         button.remove();

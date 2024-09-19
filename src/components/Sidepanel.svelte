@@ -184,7 +184,7 @@
         {/each}
       </div>
       <button type="button" class="btn btn-secondary" on:click={toggleSettings}
-        >"⚙"</button
+        >⚙</button
       >
     </div>
   {/if}
