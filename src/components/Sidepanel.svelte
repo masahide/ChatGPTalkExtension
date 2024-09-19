@@ -4,7 +4,7 @@
   import { onMount } from "svelte";
   import { writable, get } from "svelte/store";
 
-  const URL = "https://taurus.cygd.jp/user";
+  const URL = "https://chatgpt.com/";
   let isIframeVisible = false;
   let isSettingsVisible = false;
 
