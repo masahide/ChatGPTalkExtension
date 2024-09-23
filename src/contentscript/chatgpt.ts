@@ -75,36 +75,46 @@ const splitTextAtNearestNewline = (
   return [text.substring(0, splitIndex), text.substring(splitIndex)];
 };
 
-const injectText = (text: string) => {
-  const textarea = document.getElementById(
-    "prompt-textarea",
-  ) as HTMLTextAreaElement;
-  if (!textarea) {
-    console.log("textarea not found");
-    return;
+const injectText = (text: string, autoSend: boolean) => {
+  const contentEditableElement = document.querySelector(
+    '[contenteditable="true"]',
+  ) as HTMLElement;
+  if (contentEditableElement) {
+    contentEditableElement.focus(); // フォーカスを合わせる
+
+    const selection = window.getSelection();
+    const range = document.createRange();
+    if (selection) {
+      // contentEditable内のカーソル位置を取得
+      range.selectNodeContents(contentEditableElement);
+      range.collapse(false); // カーソルを末尾に移動
+      // 新しいテキストノードを作成してカーソル位置に挿入
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+      // カーソルを挿入したテキストの後に移動させる
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
   }
-  textarea.value = text;
-  textarea.style.height = "auto";
-  textarea.style.height = textarea.scrollHeight + "px";
-  const length = textarea.value.length;
-  textarea.selectionStart = length;
-  textarea.selectionEnd = length;
-  textarea.dispatchEvent(
-    new Event("input", {
-      bubbles: true,
-      cancelable: true,
-    }),
-  );
-  console.log(`injectText text: ${text} textarea:${textarea}`);
   setTimeout(() => {
-    textarea.focus();
-    textarea.scrollTop = textarea.scrollHeight;
-  }, 1000);
+    contentEditableElement.scrollTop = contentEditableElement.scrollHeight;
+    if (autoSend) {
+      const sendButton = document.querySelector(
+        '[data-testid="send-button"]',
+      ) as HTMLElement;
+      if (sendButton) {
+        sendButton.click();
+      }
+    }
+  }, 300);
 };
 
 const addButton = (
   text: string,
   prompt: string,
+  autoSend: boolean,
   title: string,
   url: string,
   no: number,
@@ -132,12 +142,12 @@ const addButton = (
       URL: url,
       SELECTED_LANGUAGE: lang,
     };
-    injectText(replaceTemplateVariables(prompt, variables));
+    injectText(replaceTemplateVariables(prompt, variables), autoSend);
     if (button) {
       button.remove();
     }
     if (remainingPart.length > 0) {
-      addButton(remainingPart.trim(), prompt, title, url, no + 1);
+      addButton(remainingPart.trim(), prompt, autoSend, title, url, no + 1);
     }
   });
 };
@@ -162,11 +172,12 @@ if (window !== window.top) {
         URL: data.source.url,
         SELECTED_LANGUAGE: lang,
       };
-      injectText(replaceTemplateVariables(data.prompt, variables));
+      injectText(replaceTemplateVariables(data.prompt, variables), autoSend);
       if (remainingPart.length > 0) {
         addButton(
           remainingPart.trim(),
           data.prompt,
+          data.autoSend,
           data.source.title,
           data.source.url,
           1,

@@ -4,6 +4,14 @@
   "description": {
     "message": "Using the ChatGPTalk sidebar extension allows you to easily summarize the text of web pages using ChatGPT."
   },
+  "default_prompt1_titile": { "message": "Summary" },
+  "default_prompt1_value": {
+    "message": "Condense the provided text into concise bulletpoints, selecting a fitting emoji for each, and respond in English using the content: {{CONTENT}}"
+  },
+  "default_prompt2_titile": { "message": "Translation" },
+  "default_prompt2_value": {
+    "message": "Please translate the following text into English: {{CONTENT}}"
+  },
   "title": { "message": "Click to open panel" },
   "options_title": { "message": "Options Page" },
   "options_language": { "message": "Language" },

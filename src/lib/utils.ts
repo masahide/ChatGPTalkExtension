@@ -26,13 +26,14 @@ export enum TextType {
 export type injectData = {
   source: summarySourceText;
   prompt: string;
+  autoSend: boolean;
 };
 export type summarySourceText = {
   title: string;
   text: string;
   url: string;
 };
-export function getSelection(prompt: string) {
+export function getSelection(prompt: string, autoSend: boolean) {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
     for (let i = 0; i < tabs.length; i++) {
       let tabid = tabs[i].id;
@@ -41,6 +42,7 @@ export function getSelection(prompt: string) {
           name: TextType.Selection,
           windowID: tabid,
           prompt: prompt,
+          autoSend: autoSend,
         });
       }
       //console.log(`getSelection tabid:${tabid} prompt:${prompt}`);

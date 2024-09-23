@@ -4,6 +4,14 @@
   "description": {
     "message": "ChatGPTalk サイドバー拡張機能を使うと、ChatGPTを用いてWebページの本文を簡単に要約できます。"
   },
+  "default_prompt1_titile": { "message": "要約" },
+  "default_prompt1_value": {
+    "message": "Condense the provided text into concise bulletpoints, selecting a fitting emoji for each, and respond in Japanese using the content: {{CONTENT}}"
+  },
+  "default_prompt2_titile": { "message": "翻訳" },
+  "default_prompt2_value": {
+    "message": "Please translate the following text into Japanese: {{CONTENT}}"
+  },
   "title": { "message": "パネルを開く" },
   "options_title": { "message": "オプション" },
   "options_language": { "message": "言語" },
