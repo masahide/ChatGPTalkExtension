@@ -12,7 +12,9 @@
   "default_prompt2_value": {
     "message": "Please translate the following text into Japanese: {{CONTENT}}"
   },
-  "chat_button1": { "message": "" },
+  "sidepanel_setting": { "message": "設定" },
+  "sidepanel_maxCharstoSplit": { "message": "分割最大文字数" },
+  "sidepanel_buttonLabel": { "message": "ボタン名" },
   "title": { "message": "パネルを開く" },
   "options_title": { "message": "オプション" },
   "options_language": { "message": "言語" },

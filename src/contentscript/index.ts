@@ -109,6 +109,7 @@ chrome.runtime.onMessage.addListener(async (request, options) => {
         name: TextType.Selection,
         windowID: request.windowID,
         prompt: request.prompt,
+        autoSend: request.autoSend,
         data: {
           url: window.location.href,
           title: window.document.title,
@@ -131,6 +132,7 @@ chrome.runtime.onMessage.addListener(async (request, options) => {
       name: TextType.Transcription,
       windowID: request.windowID,
       prompt: request.prompt,
+      autoSend: request.autoSend,
       data: res,
     });
     //console.log("getTranscription ", res);
@@ -141,6 +143,7 @@ chrome.runtime.onMessage.addListener(async (request, options) => {
     name: TextType.FullText,
     windowID: request.windowID,
     prompt: request.prompt,
+    autoSend: request.autoSend,
     data: extractContent(),
   });
   // console.log(

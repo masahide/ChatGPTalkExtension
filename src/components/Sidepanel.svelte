@@ -7,6 +7,18 @@
   const URL = "https://chatgpt.com/";
   let isIframeVisible = false;
   let isSettingsVisible = false;
+  let messages: { [key: string]: string } = {
+    sidepanel_setting: "",
+    sidepanel_maxCharstoSplit: "",
+    sidepanel_buttonLabel: "",
+    sidepanel_promptTemplate: "",
+    sidepanel_autoSend: "",
+    sidepanel_delete: "",
+    sidepanel_addButton: "",
+    sidepanel_save: "",
+    sidepanel_close: "",
+    sidepanel_capture: "",
+  };
 
   // デフォルトの設定値を定義
   const defaultSettings = [
@@ -135,6 +147,9 @@
   onMount(() => {
     open(URL);
     loadSettings();
+    for (const key in messages) {
+      messages[key] = chrome.i18n.getMessage(key);
+    }
   });
 </script>
 
@@ -142,10 +157,10 @@
 <div class="panel">
   {#if isSettingsVisible}
     <div class="settings-overlay bg-body">
-      <h2>設定</h2>
+      <h2>{messages["sidepanel_setting"]}</h2>
       <div class="mb-3">
         <label for="maxCharsToSplit" class="form-label"
-          >Max Chars to Split</label
+          >{messages["sidepanel_maxCharstoSplit"]}</label
         >
         <input
           type="number"
@@ -158,7 +173,9 @@
       {#each $settings as setting, index}
         <div class="setting-item border">
           <div class="mb-2">
-            <label for="key{index}" class="form-label">Button label</label>
+            <label for="key{index}" class="form-label"
+              >{messages["sidepanel_buttonLabel"]}</label
+            >
             <input
               type="text"
               class="form-control"
@@ -169,7 +186,7 @@
           </div>
           <div class="mb-2">
             <label for="Textarea{index}" class="form-label"
-              >Prompt template</label
+              >{messages["sidepanel_promptTemplate"]}</label
             >
             <textarea
               class="form-control"
@@ -186,24 +203,25 @@
               id="Checked_{index}"
             />
             <label class="form-check-label" for="Checked_{index}">
-              自動送信
+              {messages["sidepanel_autoSend"]}
             </label>
           </div>
           <button
             type="button"
             class="btn btn-secondary"
-            on:click={() => removeSetting(index)}>削除</button
+            on:click={() => removeSetting(index)}
+            >{messages["sidepanel_delete"]}</button
           >
         </div>
       {/each}
       <button type="button" class="btn btn-secondary" on:click={addSetting}
-        >設定項目を追加</button
+        >{messages["sidepanel_addButton"]}</button
       >
       <button type="button" class="btn btn-primary" on:click={saveSettings}
-        >保存</button
+        >{messages["sidepanel_save"]}</button
       >
       <button type="button" class="btn btn-secondary" on:click={toggleSettings}
-        >閉じる</button
+        >{messages["sidepanel_close"]}</button
       >
     </div>
   {/if}
@@ -226,7 +244,7 @@
         data-bs-toggle="dropdown"
         aria-expanded="false"
       >
-        Add Page Text to Prompt
+        {messages["sidepanel_capture"]}
       </button>
       <ul class="dropdown-menu">
         {#each $settings as setting, index}

@@ -6,15 +6,8 @@ import {
 } from "../lib/utils";
 let lang = "";
 let maxCharsToSplit = defaultMaxCharsToSplit;
-//let prompt = promptTemplate;
 let button: HTMLButtonElement | null = null;
-chrome.storage.sync.get(["lang", "prompt", "maxCharsToSplit"], (data) => {
-  /*if (data && data.prompt) {
-    prompt = data.prompt;
-  }*/
-  if (data && data.lang) {
-    lang = data.lang;
-  }
+chrome.storage.sync.get(["maxCharsToSplit"], (data) => {
   if (data && data.maxCharsToSplit) {
     maxCharsToSplit = data.maxCharsToSplit;
   }
@@ -41,16 +34,6 @@ function cleanUpText(text: string): string {
 chrome.storage.onChanged.addListener((changes, namespace) => {
   for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
     switch (key) {
-      /*case "prompt":
-        prompt = newValue as string;
-        break;
-      */
-      case "lang":
-        let v = newValue as string;
-        if (v !== "") {
-          lang = v;
-        }
-        break;
       case "maxCharsToSplit":
         maxCharsToSplit = newValue as number;
         break;
