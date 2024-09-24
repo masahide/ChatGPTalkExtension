@@ -100,11 +100,13 @@ const injectText = (text: string, autoSend: boolean) => {
   }
   setTimeout(() => {
     contentEditableElement.scrollTop = contentEditableElement.scrollHeight;
+    console.log("autoSend", autoSend);
     if (autoSend) {
       const sendButton = document.querySelector(
-        '[data-testid="send-button"]',
+        'button[data-testid="send-button"]',
       ) as HTMLElement;
       if (sendButton) {
+        console.log("sendButton", sendButton);
         sendButton.click();
       }
     }
@@ -157,7 +159,7 @@ if (window !== window.top) {
   //console.log("window !== window.top. window: ", window);
   window.addEventListener("message", (response) => {
     const data = response.data as injectData;
-    //console.log("Event data: ", data);
+    console.log("Event data: ", data);
     if (data.source.title && data.source.text) {
       if (button) {
         button.remove();
@@ -172,7 +174,10 @@ if (window !== window.top) {
         URL: data.source.url,
         SELECTED_LANGUAGE: lang,
       };
-      injectText(replaceTemplateVariables(data.prompt, variables), autoSend);
+      injectText(
+        replaceTemplateVariables(data.prompt, variables),
+        data.autoSend,
+      );
       if (remainingPart.length > 0) {
         addButton(
           remainingPart.trim(),

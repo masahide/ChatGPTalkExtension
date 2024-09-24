@@ -12,6 +12,7 @@
   "default_prompt2_value": {
     "message": "Please translate the following text into Japanese: {{CONTENT}}"
   },
+  "chat_button1": { "message": "" },
   "title": { "message": "パネルを開く" },
   "options_title": { "message": "オプション" },
   "options_language": { "message": "言語" },
