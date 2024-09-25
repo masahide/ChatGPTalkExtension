@@ -4,6 +4,24 @@
   "description": {
     "message": "ChatGPTalk サイドバー拡張機能を使うと、ChatGPTを用いてWebページの本文を簡単に要約できます。"
   },
+  "default_prompt1_titile": { "message": "要約" },
+  "default_prompt1_value": {
+    "message": "Condense the provided text into concise bulletpoints, selecting a fitting emoji for each, and respond in Japanese using the content: {{CONTENT}}"
+  },
+  "default_prompt2_titile": { "message": "翻訳" },
+  "default_prompt2_value": {
+    "message": "Please translate the following text into Japanese: {{CONTENT}}"
+  },
+  "sidepanel_setting": { "message": "設定" },
+  "sidepanel_maxCharstoSplit": { "message": "文字列を分割する最大文字数" },
+  "sidepanel_buttonLabel": { "message": "ボタン名" },
+  "sidepanel_promptTemplate": { "message": "プロンプトテンプレート" },
+  "sidepanel_autoSend": { "message": "自動送信" },
+  "sidepanel_delete": { "message": "削除" },
+  "sidepanel_addButton": { "message": "ボタンを追加" },
+  "sidepanel_save": { "message": "保存" },
+  "sidepanel_close": { "message": "閉じる" },
+  "sidepanel_capture": { "message": "取り込む" },
   "title": { "message": "パネルを開く" },
   "options_title": { "message": "オプション" },
   "options_language": { "message": "言語" },

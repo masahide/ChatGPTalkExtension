@@ -99,7 +99,7 @@ async function getTranscription() {
 }
 
 chrome.runtime.onMessage.addListener(async (request, options) => {
-  //console.log("request.name:", request.name);
+  //console.log(`request.name:${request.name} prompt:${request.prompt}`);
   let url = new URL(window.location.href);
   if (request.name == TextType.Selection) {
     let str = window.getSelection()?.toString();
@@ -108,6 +108,8 @@ chrome.runtime.onMessage.addListener(async (request, options) => {
       chrome.runtime.sendMessage({
         name: TextType.Selection,
         windowID: request.windowID,
+        prompt: request.prompt,
+        autoSend: request.autoSend,
         data: {
           url: window.location.href,
           title: window.document.title,
@@ -117,6 +119,9 @@ chrome.runtime.onMessage.addListener(async (request, options) => {
           id: "",
         },
       });
+      //console.log(
+      //  `getselection sendmessage request.name:${request.name} prompt:${request.prompt}`,
+      //);
       return;
     }
   }
@@ -126,6 +131,8 @@ chrome.runtime.onMessage.addListener(async (request, options) => {
     chrome.runtime.sendMessage({
       name: TextType.Transcription,
       windowID: request.windowID,
+      prompt: request.prompt,
+      autoSend: request.autoSend,
       data: res,
     });
     //console.log("getTranscription ", res);
@@ -135,6 +142,11 @@ chrome.runtime.onMessage.addListener(async (request, options) => {
   chrome.runtime.sendMessage({
     name: TextType.FullText,
     windowID: request.windowID,
+    prompt: request.prompt,
+    autoSend: request.autoSend,
     data: extractContent(),
   });
+  // console.log(
+  //   `full text sendmessage request.name:${request.name} prompt:${request.prompt}`,
+  // );
 });

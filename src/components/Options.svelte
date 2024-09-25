@@ -24,13 +24,7 @@
     if (languageName) {
       language = languageName;
     }
-    chrome.storage.sync.get(["lang", "prompt", "maxCharsToSplit"], (data) => {
-      if (data && data.prompt) {
-        prompt = data.prompt;
-      }
-      if (data && data.lang) {
-        language = data.lang;
-      }
+    chrome.storage.sync.get(["maxCharsToSplit"], (data) => {
       if (data && data.maxCharsToSplit) {
         maxCharsToSplit = data.maxCharsToSplit;
       }
@@ -43,8 +37,6 @@
   const handleSave = () => {
     chrome.storage.sync
       .set({
-        prompt: prompt,
-        lang: language,
         maxCharsToSplit: maxCharsToSplit,
       })
       .then(() => {

@@ -1,37 +1,7 @@
-import type { summarySourceText } from "../lib/utils";
-import { promptTemplate, defaultMaxCharsToSplit } from "../lib/utils";
+import type { injectData } from "../lib/utils";
+import { replaceTemplateVariables } from "../lib/utils";
 let lang = "";
-let maxCharsToSplit = defaultMaxCharsToSplit;
-let prompt = promptTemplate;
 let button: HTMLButtonElement | null = null;
-chrome.storage.sync.get(["lang", "prompt", "maxCharsToSplit"], (data) => {
-  if (data && data.prompt) {
-    prompt = data.prompt;
-  }
-  if (data && data.lang) {
-    lang = data.lang;
-  }
-  if (data && data.maxCharsToSplit) {
-    maxCharsToSplit = data.maxCharsToSplit;
-  }
-  if (lang === "") {
-    const languageName = new Intl.DisplayNames(["en"], { type: "language" }).of(
-      chrome.i18n.getUILanguage(),
-    );
-    if (languageName) {
-      lang = languageName;
-    }
-  }
-});
-function replaceTemplateVariables(
-  template: string,
-  variables: { [key: string]: string },
-): string {
-  return Object.keys(variables).reduce((currentTemplate, key) => {
-    const regex = new RegExp(`{{${key}}}`, "g");
-    return currentTemplate.replace(regex, variables[key]);
-  }, template);
-}
 
 // 文字列を修正する関数
 function cleanUpText(text: string): string {
@@ -43,24 +13,6 @@ function cleanUpText(text: string): string {
   text = text.replace(/\n+/g, "\n");
   return text;
 }
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
-    switch (key) {
-      case "prompt":
-        prompt = newValue as string;
-        break;
-      case "lang":
-        let v = newValue as string;
-        if (v !== "") {
-          lang = v;
-        }
-        break;
-      case "maxCharsToSplit":
-        maxCharsToSplit = newValue as number;
-        break;
-    }
-  }
-});
 
 const splitTextAtNearestNewline = (
   text: string,
@@ -79,33 +31,53 @@ const splitTextAtNearestNewline = (
   return [text.substring(0, splitIndex), text.substring(splitIndex)];
 };
 
-const injectText = (text: string) => {
-  const textarea = document.getElementById(
-    "prompt-textarea",
-  ) as HTMLTextAreaElement;
-  if (!textarea) {
-    console.log("textarea not found");
-    return;
+const injectText = (text: string, autoSend: boolean) => {
+  const contentEditableElement = document.querySelector(
+    '[contenteditable="true"]',
+  ) as HTMLElement;
+  if (contentEditableElement) {
+    contentEditableElement.focus(); // フォーカスを合わせる
+
+    const selection = window.getSelection();
+    const range = document.createRange();
+    if (selection) {
+      // contentEditable内のカーソル位置を取得
+      range.selectNodeContents(contentEditableElement);
+      range.collapse(false); // カーソルを末尾に移動
+      // 新しいテキストノードを作成してカーソル位置に挿入
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+      // カーソルを挿入したテキストの後に移動させる
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
   }
-  textarea.value = text;
-  textarea.style.height = "auto";
-  textarea.style.height = textarea.scrollHeight + "px";
-  const length = textarea.value.length;
-  textarea.selectionStart = length;
-  textarea.selectionEnd = length;
-  textarea.dispatchEvent(
-    new Event("input", {
-      bubbles: true,
-      cancelable: true,
-    }),
-  );
   setTimeout(() => {
-    textarea.focus();
-    textarea.scrollTop = textarea.scrollHeight;
-  }, 1000);
+    contentEditableElement.scrollTop = contentEditableElement.scrollHeight;
+    console.log("autoSend", autoSend);
+    if (autoSend) {
+      const sendButton = document.querySelector(
+        'button[data-testid="send-button"]',
+      ) as HTMLElement;
+      if (sendButton) {
+        console.log("sendButton", sendButton);
+        sendButton.click();
+      }
+    }
+  }, 300);
 };
 
-const addButton = (text: string, title: string, url: string, no: number) => {
+const addButton = (
+  text: string,
+  prompt: string,
+  autoSend: boolean,
+  maxCharsToSplit: number,
+  title: string,
+  url: string,
+  no: number,
+) => {
   button = document.createElement("button");
   button.textContent = `More.. part${no + 1}`;
   button.style.position = "fixed";
@@ -129,39 +101,58 @@ const addButton = (text: string, title: string, url: string, no: number) => {
       URL: url,
       SELECTED_LANGUAGE: lang,
     };
-    injectText(replaceTemplateVariables(prompt, variables));
+    injectText(replaceTemplateVariables(prompt, variables), autoSend);
     if (button) {
       button.remove();
     }
     if (remainingPart.length > 0) {
-      addButton(remainingPart.trim(), title, url, no + 1);
+      addButton(
+        remainingPart.trim(),
+        prompt,
+        autoSend,
+        maxCharsToSplit,
+        title,
+        url,
+        no + 1,
+      );
     }
   });
 };
 
 //console.log("load chatgpt.ts");
 if (window !== window.top) {
-  //console.log("window !== window.top. window: ",window);
+  //console.log("window !== window.top. window: ", window);
   window.addEventListener("message", (response) => {
-    const data = response.data as summarySourceText;
-    //console.log("Event message: ",response);
-    if (data.title && data.text) {
+    const data = response.data as injectData;
+    console.log("Event data: ", data);
+    if (data.source.title && data.source.text) {
       if (button) {
         button.remove();
       }
       const [firstPart, remainingPart] = splitTextAtNearestNewline(
-        cleanUpText(data.text),
-        maxCharsToSplit,
+        cleanUpText(data.source.text),
+        data.maxCharsToSplit,
       );
       const variables = {
-        TITLE: data.title,
+        TITLE: data.source.title,
         CONTENT: firstPart,
-        URL: data.url,
+        URL: data.source.url,
         SELECTED_LANGUAGE: lang,
       };
-      injectText(replaceTemplateVariables(prompt, variables));
+      injectText(
+        replaceTemplateVariables(data.prompt, variables),
+        data.autoSend,
+      );
       if (remainingPart.length > 0) {
-        addButton(remainingPart.trim(), data.title, data.url, 1);
+        addButton(
+          remainingPart.trim(),
+          data.prompt,
+          data.autoSend,
+          data.maxCharsToSplit,
+          data.source.title,
+          data.source.url,
+          1,
+        );
       }
     }
   });
