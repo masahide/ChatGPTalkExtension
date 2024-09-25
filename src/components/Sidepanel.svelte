@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ArticleSnapshot, OpenAIRequest } from "../lib/utils";
-  import { getSelection, toSummarySource, TextType } from "../lib/utils";
+  import { getSelection, toSummarySource } from "../lib/utils";
   import { onMount } from "svelte";
   import { writable, get } from "svelte/store";
 
@@ -39,8 +39,7 @@
     writable<{ key: string; value: string; autoSend: boolean }[]>(
       defaultSettings,
     );
-  let maxCharsToSplit = writable<number>(1000);
-  let lang = writable<string>("en");
+  let maxCharsToSplit = writable<number>(4500);
 
   const open = async (currenturl: string) => {
     const iframe = document.getElementById("preview") as HTMLIFrameElement;
@@ -88,6 +87,7 @@
               source: source,
               prompt: message.prompt,
               autoSend: message.autoSend,
+              maxCharsToSplit: message.maxCharsToSplit,
             },
             URL,
           );
@@ -97,7 +97,7 @@
   };
 
   const capture = (value: string, autoSend: boolean) => {
-    getSelection(value, autoSend);
+    getSelection(value, autoSend, get(maxCharsToSplit));
   };
 
   const toggleSettings = () => {
@@ -118,11 +118,9 @@
   const saveSettings = async () => {
     const currentSettings = get(settings);
     const currentMaxCharsToSplit = get(maxCharsToSplit);
-    const currentLang = get(lang);
     await chrome.storage.sync.set({
       userSettings: currentSettings,
       maxCharsToSplit: currentMaxCharsToSplit,
-      lang: currentLang,
     });
     toggleSettings();
   };
@@ -131,16 +129,12 @@
     const result = await chrome.storage.sync.get([
       "userSettings",
       "maxCharsToSplit",
-      "lang",
     ]);
     if (result.userSettings) {
       settings.set(result.userSettings);
     }
     if (result.maxCharsToSplit) {
       maxCharsToSplit.set(result.maxCharsToSplit);
-    }
-    if (result.lang) {
-      lang.set(result.lang);
     }
   };
 
@@ -261,7 +255,7 @@
         <li>
           <!-- svelte-ignore a11y-invalid-attribute -->
           <a class="dropdown-item" href="#" on:click={toggleSettings}
-            >⚙ Settings</a
+            >⚙{messages["sidepanel_setting"]}</a
           >
         </li>
       </ul>

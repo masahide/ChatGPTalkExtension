@@ -27,13 +27,18 @@ export type injectData = {
   source: summarySourceText;
   prompt: string;
   autoSend: boolean;
+  maxCharsToSplit: number;
 };
 export type summarySourceText = {
   title: string;
   text: string;
   url: string;
 };
-export function getSelection(prompt: string, autoSend: boolean) {
+export function getSelection(
+  prompt: string,
+  autoSend: boolean,
+  maxCharsToSplit: number,
+) {
   chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
     for (let i = 0; i < tabs.length; i++) {
       let tabid = tabs[i].id;
@@ -43,6 +48,7 @@ export function getSelection(prompt: string, autoSend: boolean) {
           windowID: tabid,
           prompt: prompt,
           autoSend: autoSend,
+          maxCharsToSplit: maxCharsToSplit,
         });
       }
       //console.log(`getSelection tabid:${tabid} prompt:${prompt}`);

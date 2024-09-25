@@ -1,25 +1,7 @@
 import type { injectData } from "../lib/utils";
-import {
-  promptTemplate,
-  defaultMaxCharsToSplit,
-  replaceTemplateVariables,
-} from "../lib/utils";
+import { replaceTemplateVariables } from "../lib/utils";
 let lang = "";
-let maxCharsToSplit = defaultMaxCharsToSplit;
 let button: HTMLButtonElement | null = null;
-chrome.storage.sync.get(["maxCharsToSplit"], (data) => {
-  if (data && data.maxCharsToSplit) {
-    maxCharsToSplit = data.maxCharsToSplit;
-  }
-  if (lang === "") {
-    const languageName = new Intl.DisplayNames(["en"], { type: "language" }).of(
-      chrome.i18n.getUILanguage(),
-    );
-    if (languageName) {
-      lang = languageName;
-    }
-  }
-});
 
 // 文字列を修正する関数
 function cleanUpText(text: string): string {
@@ -31,15 +13,6 @@ function cleanUpText(text: string): string {
   text = text.replace(/\n+/g, "\n");
   return text;
 }
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
-    switch (key) {
-      case "maxCharsToSplit":
-        maxCharsToSplit = newValue as number;
-        break;
-    }
-  }
-});
 
 const splitTextAtNearestNewline = (
   text: string,
@@ -100,6 +73,7 @@ const addButton = (
   text: string,
   prompt: string,
   autoSend: boolean,
+  maxCharsToSplit: number,
   title: string,
   url: string,
   no: number,
@@ -132,7 +106,15 @@ const addButton = (
       button.remove();
     }
     if (remainingPart.length > 0) {
-      addButton(remainingPart.trim(), prompt, autoSend, title, url, no + 1);
+      addButton(
+        remainingPart.trim(),
+        prompt,
+        autoSend,
+        maxCharsToSplit,
+        title,
+        url,
+        no + 1,
+      );
     }
   });
 };
@@ -149,7 +131,7 @@ if (window !== window.top) {
       }
       const [firstPart, remainingPart] = splitTextAtNearestNewline(
         cleanUpText(data.source.text),
-        maxCharsToSplit,
+        data.maxCharsToSplit,
       );
       const variables = {
         TITLE: data.source.title,
@@ -166,6 +148,7 @@ if (window !== window.top) {
           remainingPart.trim(),
           data.prompt,
           data.autoSend,
+          data.maxCharsToSplit,
           data.source.title,
           data.source.url,
           1,
