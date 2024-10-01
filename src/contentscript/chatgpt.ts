@@ -1,14 +1,11 @@
 import type { injectData } from "../lib/utils";
 import { replaceTemplateVariables } from "../lib/utils";
 let lang = "";
-let button: HTMLButtonElement | null = null;
 
 // 文字列を修正する関数
 function cleanUpText(text: string): string {
   // 行末のスペースを削除
   text = text.replace(/[ \t]+$/gm, "");
-  // 連続するスペースを1つに置き換え
-  //text = text.replace(/[ ]+/g, " ");
   // 連続する改行を1つの改行に置き換え
   text = text.replace(/\n+/g, "\n");
   return text;
@@ -78,7 +75,7 @@ const addButton = (
   url: string,
   no: number,
 ) => {
-  button = document.createElement("button");
+  const button = document.createElement("button");
   button.textContent = `More.. part${no + 1}`;
   button.style.position = "fixed";
   button.style.right = "20px";
@@ -102,9 +99,7 @@ const addButton = (
       SELECTED_LANGUAGE: lang,
     };
     injectText(replaceTemplateVariables(prompt, variables), autoSend);
-    if (button) {
-      button.remove();
-    }
+    button.remove();
     if (remainingPart.length > 0) {
       addButton(
         remainingPart.trim(),
@@ -126,9 +121,6 @@ if (window !== window.top) {
     const data = response.data as injectData;
     console.log("Event data: ", data);
     if (data.source.title && data.source.text) {
-      if (button) {
-        button.remove();
-      }
       const [firstPart, remainingPart] = splitTextAtNearestNewline(
         cleanUpText(data.source.text),
         data.maxCharsToSplit,
