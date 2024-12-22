@@ -29,9 +29,8 @@ const splitTextAtNearestNewline = (
 };
 
 const injectText = (text: string, autoSend: boolean) => {
-  const contentEditableElement = document.querySelector(
-    '[contenteditable="true"]',
-  ) as HTMLElement;
+  //const contentEditableElement = document.querySelector( '[contenteditable="true"]',) as HTMLElement;
+  const contentEditableElement = document.getElementById('prompt-textarea') as HTMLElement;
   if (contentEditableElement) {
     contentEditableElement.focus(); // フォーカスを合わせる
 
@@ -96,7 +95,6 @@ const addButton = (
       TITLE: title,
       CONTENT: firstPart,
       URL: url,
-      SELECTED_LANGUAGE: lang,
     };
     injectText(replaceTemplateVariables(prompt, variables), autoSend);
     button.remove();
@@ -129,6 +127,7 @@ if (window !== window.top) {
         TITLE: data.source.title,
         CONTENT: firstPart,
         URL: data.source.url,
+        HTML: data.source.html,
         SELECTED_LANGUAGE: lang,
       };
       injectText(

@@ -3,30 +3,27 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { crx, defineManifest } from "@crxjs/vite-plugin";
 
 const manifest = defineManifest({
-  version: "1.0.7",
-  version_name: "1.0.7",
+  version: "1.1.0",
+  version_name: "1.1.0",
   manifest_version: 3,
   name: "__MSG_namefull__",
   short_name: "__MSG_name__",
   description: "__MSG_description__",
   default_locale: "en",
   icons: {
-    "16": "doc/ChatGPTalk-16.png",
-    "32": "doc/ChatGPTalk-32.png",
-    "48": "doc/ChatGPTalk-48.png",
-    "128": "doc/ChatGPTalk-128.png",
+    "16": "doc/icon16.png",
+    "32": "doc/icon32.png",
+    "48": "doc/icon48.png",
+    "128": "doc/icon128.png",
   },
   action: {
     default_title: "__MSG_title__",
     default_icon: {
-      "16": "doc/ChatGPTalk-16.png",
-      "32": "doc/ChatGPTalk-32.png",
-      "48": "doc/ChatGPTalk-48.png",
-      "128": "doc/ChatGPTalk-128.png",
+      "16": "doc/icon16.png",
+      "32": "doc/icon32.png",
+      "48": "doc/icon48.png",
+      "128": "doc/icon128.png",
     },
-  },
-  options_ui: {
-    page: "src/options/index.html",
   },
   content_scripts: [
     {

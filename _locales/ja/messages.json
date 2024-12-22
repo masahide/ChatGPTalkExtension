@@ -6,11 +6,23 @@
   },
   "default_prompt1_titile": { "message": "要約" },
   "default_prompt1_value": {
-    "message": "Condense the provided text into concise bulletpoints, selecting a fitting emoji for each, and respond in Japanese using the content: {{CONTENT}}"
+    "message": "Summarize the provided text into concise bullet points. Include one fitting emoji per point to enhance readability. Respond in Japanese. Here is the content:\n{{CONTENT}}"
   },
   "default_prompt2_titile": { "message": "翻訳" },
   "default_prompt2_value": {
     "message": "Please translate the following text into Japanese: {{CONTENT}}"
+  },
+  "default_prompt3_titile": { "message": "youtube文字起し整形" },
+  "default_prompt3_value": {
+    "message": "Format the transcript below in Japanese to make it easy to read. Use emojis and other enhancements for better readability:\n{{CONTENT}}"
+  },
+  "default_prompt4_titile": { "message": "本文をmarkdownに" },
+  "default_prompt4_value": {
+    "message": "Extract the main content from the following HTML and convert it into well-structured Markdown format. Please respond in Japanese:\n{{HTML}}"
+  },
+  "default_prompt5_titile": { "message": "上記文章を校正" },
+  "default_prompt5_value": {
+    "message": "Please proofread the above text to ensure it is clear and easy to understand for first-time readers. Clearly explain what the content is about. If any information seems missing, include annotations suggesting where additional details should be added. Please respond in Japanese."
   },
   "sidepanel_setting": { "message": "設定" },
   "sidepanel_maxCharstoSplit": { "message": "文字列を分割する最大文字数" },

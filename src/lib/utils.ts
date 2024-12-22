@@ -32,6 +32,7 @@ export type injectData = {
 export type summarySourceText = {
   title: string;
   text: string;
+  html: string;
   url: string;
 };
 export function getSelection(
@@ -93,31 +94,35 @@ function parseXmlToTranscript(xmlString: string): string {
 }
 export function toSummarySource(snapshot: ArticleSnapshot): summarySourceText {
   if (!snapshot) {
-    return { title: "", text: "", url: "" };
+    return { title: "", text: "", html: "", url: "" };
   }
   switch (snapshot.type) {
     case ArticleSnapshotType.Youtube:
       return {
         title: snapshot.title,
         text: parseXmlToTranscript(snapshot.content),
+        html: snapshot.content,
         url: snapshot.url,
       };
     case ArticleSnapshotType.FullText:
       return {
         title: snapshot.title,
         text: snapshot.textContent,
+        html: snapshot.content,
         url: snapshot.url,
       };
     case ArticleSnapshotType.Selection:
       return {
         title: snapshot.title,
         text: snapshot.textContent,
+        html: snapshot.content,
         url: snapshot.url,
       };
   }
   return {
     title: snapshot.title,
     text: "unknown type",
+    html: "",
     url: "",
   };
 }

@@ -19,8 +19,8 @@
     sidepanel_close: "",
     sidepanel_capture: "",
   };
-
   // デフォルトの設定値を定義
+  const defaultMaxCharsToSplit = 15000;
   const defaultSettings = [
     {
       key: chrome.i18n.getMessage("default_prompt1_titile"),
@@ -30,6 +30,21 @@
     {
       key: chrome.i18n.getMessage("default_prompt2_titile"),
       value: chrome.i18n.getMessage("default_prompt2_value"),
+      autoSend: true,
+    },
+    {
+      key: chrome.i18n.getMessage("default_prompt3_titile"),
+      value: chrome.i18n.getMessage("default_prompt3_value"),
+      autoSend: true,
+    },
+    {
+      key: chrome.i18n.getMessage("default_prompt4_titile"),
+      value: chrome.i18n.getMessage("default_prompt4_value"),
+      autoSend: true,
+    },
+    {
+      key: chrome.i18n.getMessage("default_prompt5_titile"),
+      value: chrome.i18n.getMessage("default_prompt5_value"),
       autoSend: true,
     },
   ];
