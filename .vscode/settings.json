@@ -1,0 +1,6 @@
+{
+  "prettier.endOfLine": "lf",
+  "files.eol": "\n",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "notebook.defaultFormatter": "esbenp.prettier-vscode"
+}
