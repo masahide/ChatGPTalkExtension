@@ -29,9 +29,8 @@ const splitTextAtNearestNewline = (
 };
 
 const injectText = (text: string, autoSend: boolean) => {
-  const contentEditableElement = document.querySelector(
-    '[contenteditable="true"]',
-  ) as HTMLElement;
+  //const contentEditableElement = document.querySelector( '[contenteditable="true"]',) as HTMLElement;
+  const contentEditableElement = document.getElementById('prompt-textarea') as HTMLElement;
   if (contentEditableElement) {
     contentEditableElement.focus(); // フォーカスを合わせる
 
