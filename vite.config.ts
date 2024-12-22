@@ -11,18 +11,18 @@ const manifest = defineManifest({
   description: "__MSG_description__",
   default_locale: "en",
   icons: {
-    "16": "doc/ChatGPTalk-16.png",
-    "32": "doc/ChatGPTalk-32.png",
-    "48": "doc/ChatGPTalk-48.png",
-    "128": "doc/ChatGPTalk-128.png",
+    "16": "doc/icon16.png",
+    "32": "doc/icon32.png",
+    "48": "doc/icon48.png",
+    "128": "doc/icon128.png",
   },
   action: {
     default_title: "__MSG_title__",
     default_icon: {
-      "16": "doc/ChatGPTalk-16.png",
-      "32": "doc/ChatGPTalk-32.png",
-      "48": "doc/ChatGPTalk-48.png",
-      "128": "doc/ChatGPTalk-128.png",
+      "16": "doc/icon16.png",
+      "32": "doc/icon32.png",
+      "48": "doc/icon48.png",
+      "128": "doc/icon128.png",
     },
   },
   options_ui: {
