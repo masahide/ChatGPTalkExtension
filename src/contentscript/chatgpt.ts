@@ -96,7 +96,6 @@ const addButton = (
       TITLE: title,
       CONTENT: firstPart,
       URL: url,
-      SELECTED_LANGUAGE: lang,
     };
     injectText(replaceTemplateVariables(prompt, variables), autoSend);
     button.remove();
@@ -129,6 +128,7 @@ if (window !== window.top) {
         TITLE: data.source.title,
         CONTENT: firstPart,
         URL: data.source.url,
+        HTML: data.source.html,
         SELECTED_LANGUAGE: lang,
       };
       injectText(

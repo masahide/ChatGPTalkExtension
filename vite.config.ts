@@ -25,9 +25,6 @@ const manifest = defineManifest({
       "128": "doc/icon128.png",
     },
   },
-  options_ui: {
-    page: "src/options/index.html",
-  },
   content_scripts: [
     {
       matches: ["http://*/*", "https://*/*"],
