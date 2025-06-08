@@ -1,6 +1,8 @@
+// console.log("[GeminiInjector] script loaded");
 import type { injectData } from "../lib/utils";
 import { replaceTemplateVariables } from "../lib/utils";
-let lang = "";
+
+let lang = document.documentElement.lang || navigator.language || "en";
 
 // 文字列を修正する関数
 function cleanUpText(text: string): string {
@@ -29,6 +31,7 @@ const splitTextAtNearestNewline = (
 };
 
 const injectText = (text: string, autoSend: boolean) => {
+  // console.log("[chatgptInjector] injectText() start", { text, autoSend });
   //const contentEditableElement = document.querySelector( '[contenteditable="true"]',) as HTMLElement;
   const contentEditableElement = document.getElementById('prompt-textarea') as HTMLElement;
   if (contentEditableElement) {
@@ -52,13 +55,13 @@ const injectText = (text: string, autoSend: boolean) => {
   }
   setTimeout(() => {
     contentEditableElement.scrollTop = contentEditableElement.scrollHeight;
-    console.log("autoSend", autoSend);
+    //console.log("autoSend", autoSend);
     if (autoSend) {
       const sendButton = document.querySelector(
         'button[data-testid="send-button"]',
       ) as HTMLElement;
       if (sendButton) {
-        console.log("sendButton", sendButton);
+        // console.log("sendButton", sendButton);
         sendButton.click();
       }
     }
@@ -112,12 +115,12 @@ const addButton = (
   });
 };
 
-//console.log("load chatgpt.ts");
+// console.log("load chatgpt.ts");
 if (window !== window.top) {
   //console.log("window !== window.top. window: ", window);
   window.addEventListener("message", (response) => {
     const data = response.data as injectData;
-    console.log("Event data: ", data);
+    // console.log("Event data: ", data);
     if (data.source.title && data.source.text) {
       const [firstPart, remainingPart] = splitTextAtNearestNewline(
         cleanUpText(data.source.text),

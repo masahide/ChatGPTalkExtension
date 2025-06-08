@@ -4,7 +4,17 @@
   import { onMount } from "svelte";
   import { writable, get } from "svelte/store";
 
-  const URL = "https://chatgpt.com/";
+  // LLM サービス ↔ URL マッピング
+  const SERVICE_URL_MAP = {
+    ChatGPT: "https://chatgpt.com/",
+    Gemini: "https://gemini.google.com/app",
+  } as const;
+  let currentService: keyof typeof SERVICE_URL_MAP = "ChatGPT";
+
+  const services = Object.keys(SERVICE_URL_MAP) as Array<
+    keyof typeof SERVICE_URL_MAP
+  >;
+
   let isIframeVisible = false;
   let isSettingsVisible = false;
   let messages: { [key: string]: string } = {
@@ -89,24 +99,26 @@
         },
       ],
     });
-    if (iframe) {
-      iframe.src = currenturl;
-      isIframeVisible = true;
-      chrome.runtime.onMessage.addListener(async function (message, sender) {
+    if (!iframe) {
+      //  console.error("[Sidepanel] iframe not found");
+      return;
+    }
+    iframe.src = currenturl;
+    isIframeVisible = true;
+    // 一度だけ listener 登録
+    if (!(window as any)._sidepanelListenerRegistered) {
+      (window as any)._sidepanelListenerRegistered = true;
+      chrome.runtime.onMessage.addListener(async (message) => {
         const snapshot = message.data as ArticleSnapshot;
-        const source = toSummarySource(snapshot);
-        const iframe = document.getElementById("preview") as HTMLIFrameElement;
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage(
-            {
-              source: source,
-              prompt: message.prompt,
-              autoSend: message.autoSend,
-              maxCharsToSplit: message.maxCharsToSplit,
-            },
-            URL,
-          );
-        }
+        iframe.contentWindow?.postMessage(
+          {
+            source: toSummarySource(snapshot),
+            prompt: message.prompt,
+            autoSend: message.autoSend,
+            maxCharsToSplit: message.maxCharsToSplit,
+          },
+          SERVICE_URL_MAP[currentService],
+        );
       });
     }
   };
@@ -154,7 +166,7 @@
   };
 
   onMount(() => {
-    open(URL);
+    open(SERVICE_URL_MAP[currentService]);
     loadSettings();
     for (const key in messages) {
       messages[key] = chrome.i18n.getMessage(key);
@@ -239,41 +251,105 @@
     <iframe
       id="preview"
       class="preview"
-      style:display={isIframeVisible ? "block" : "none"}
+      class:d-none={!isIframeVisible}
       allow="camera; clipboard-write; fullscreen; microphone; geolocation"
     ></iframe>
   </div>
   <div class="footer">
-    <!-- チャットメッセージの例 -->
-    <div class="chat-message bot-message bg-secondary-subtle"></div>
-    <div class="button-group">
-      <button
-        type="button"
-        class="btn btn-primary dropdown-toggle"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
-        {messages["sidepanel_capture"]}
-      </button>
-      <ul class="dropdown-menu">
-        {#each $settings as setting, index}
-          <li>
-            <!-- svelte-ignore a11y-invalid-attribute -->
-            <a
-              class="dropdown-item"
-              href="#"
-              on:click={() => capture(setting.value, setting.autoSend)}
-              >{setting.key}</a
-            >
-          </li>
-        {/each}
-        <li>
-          <!-- svelte-ignore a11y-invalid-attribute -->
-          <a class="dropdown-item" href="#" on:click={toggleSettings}
-            >⚙{messages["sidepanel_setting"]}</a
+    <!-- 左端：LLM 切替 -->
+    <div class="footer-item footer-llm">
+      <div class="dropdown">
+        <button
+          class="btn btn-sm custom-hover-secondary"
+          type="button"
+          id="llmDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <!-- SVG アイコン -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="currentColor"
+            viewBox="0 0 16 16"
           >
-        </li>
-      </ul>
+            <path
+              d="M8 0a8 8 0 1 0 8 8A8 8 0 0 0 8 0zm3.5 9H4.5L8 5.5 11.5 9z"
+            />
+          </svg>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="llmDropdown">
+          {#each services as svc}
+            <li>
+              <!-- svelte-ignore a11y-invalid-attribute -->
+              <a
+                class="dropdown-item"
+                href="#"
+                on:click={() => {
+                  currentService = svc;
+                  open(SERVICE_URL_MAP[svc]);
+                }}
+              >
+                {svc}
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </div>
+
+    <!-- 真ん中：取り込みボタン -->
+    <div class="footer-item footer-capture">
+      <div class="dropdown">
+        <button
+          class="btn btn-primary btn-sm dropdown-toggle"
+          type="button"
+          id="captureDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          {messages["sidepanel_capture"]}
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="captureDropdown">
+          {#each $settings as setting, index}
+            <li>
+              <!-- svelte-ignore a11y-invalid-attribute -->
+              <a
+                class="dropdown-item"
+                href="#"
+                on:click={() => capture(setting.value, setting.autoSend)}
+              >
+                {setting.key}
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </div>
+
+    <!-- 右端：設定（歯車）ボタン -->
+    <div class="footer-item footer-settings">
+      <button
+        class="btn btn-sm custom-hover-secondary"
+        on:click={toggleSettings}
+        aria-label="設定"
+      >
+        <!-- 歯車アイコンSVG -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          class="bi bi-sliders"
+          viewBox="0 0 16 16"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
+          />
+        </svg>
+      </button>
     </div>
   </div>
 </div>
@@ -296,14 +372,22 @@
     height: 100%;
     box-sizing: border-box;
     margin: 0px;
+    display: block; /* iframeを常にブロック表示し、d-noneで隠す */
   }
   .preview {
     border: 0;
   }
+  /* 既存の style ブロック内、.footer を以下に置き換えてください */
   .footer {
-    flex: 0 0 auto; /*固定の高さにする*/
-    padding: 10px;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+  }
+
+  /* 固定アイテム幅＋必要なら中央寄せの補助 */
+  .footer-item {
+    flex: 0 0 auto;
   }
   .setting-item {
     display: flex;
@@ -330,5 +414,15 @@
     flex-direction: column;
     gap: 10px;
     padding: 20px;
+  }
+
+  .custom-hover-secondary {
+    background-color: transparent;
+    border: none;
+  }
+
+  .custom-hover-secondary:hover,
+  .custom-hover-secondary:focus {
+    background-color: var(--bs-secondary);
   }
 </style>

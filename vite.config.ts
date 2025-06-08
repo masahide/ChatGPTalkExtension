@@ -32,12 +32,16 @@ const manifest = defineManifest({
       run_at: "document_start",
     },
     {
-      matches: [
-        "https://chatgpt.com/*",
-        //"https://chatgpt.com/",
-        //"https://chat.openai.com/*",
-      ],
+      // OpenAI ChatGPT
+      matches: ["https://chatgpt.com/*", "https://chat.openai.com/*"],
       js: ["src/contentscript/chatgpt.ts"],
+      all_frames: true,
+      run_at: "document_idle",
+    },
+    {
+      // Google Gemini
+      matches: ["https://gemini.google.com/*"],
+      js: ["src/contentscript/gemini.ts"],
       all_frames: true,
       run_at: "document_idle",
     },
