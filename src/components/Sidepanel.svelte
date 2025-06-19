@@ -1,19 +1,16 @@
 <script lang="ts">
-  import type { ArticleSnapshot, OpenAIRequest } from "../lib/utils";
+  import type { ArticleSnapshot } from "../lib/utils";
   import { getSelection, toSummarySource } from "../lib/utils";
   import { onMount } from "svelte";
   import { writable, get } from "svelte/store";
 
-  // LLM サービス ↔ URL マッピング
   const SERVICE_URL_MAP = {
     ChatGPT: "https://chatgpt.com/",
     Gemini: "https://gemini.google.com/app",
   } as const;
   let currentService: keyof typeof SERVICE_URL_MAP = "ChatGPT";
 
-  const services = Object.keys(SERVICE_URL_MAP) as Array<
-    keyof typeof SERVICE_URL_MAP
-  >;
+  const services = Object.keys(SERVICE_URL_MAP) as Array<keyof typeof SERVICE_URL_MAP>;
 
   let isIframeVisible = false;
   let isSettingsVisible = false;
@@ -29,41 +26,16 @@
     sidepanel_close: "",
     sidepanel_capture: "",
   };
-  // デフォルトの設定値を定義
-  const defaultMaxCharsToSplit = 15000;
+
   const defaultSettings = [
-    {
-      key: chrome.i18n.getMessage("default_prompt1_titile"),
-      value: chrome.i18n.getMessage("default_prompt1_value"),
-      autoSend: true,
-    },
-    {
-      key: chrome.i18n.getMessage("default_prompt2_titile"),
-      value: chrome.i18n.getMessage("default_prompt2_value"),
-      autoSend: true,
-    },
-    {
-      key: chrome.i18n.getMessage("default_prompt3_titile"),
-      value: chrome.i18n.getMessage("default_prompt3_value"),
-      autoSend: true,
-    },
-    {
-      key: chrome.i18n.getMessage("default_prompt4_titile"),
-      value: chrome.i18n.getMessage("default_prompt4_value"),
-      autoSend: true,
-    },
-    {
-      key: chrome.i18n.getMessage("default_prompt5_titile"),
-      value: chrome.i18n.getMessage("default_prompt5_value"),
-      autoSend: true,
-    },
+    { key: chrome.i18n.getMessage("default_prompt1_titile"), value: chrome.i18n.getMessage("default_prompt1_value"), autoSend: true },
+    { key: chrome.i18n.getMessage("default_prompt2_titile"), value: chrome.i18n.getMessage("default_prompt2_value"), autoSend: true },
+    { key: chrome.i18n.getMessage("default_prompt3_titile"), value: chrome.i18n.getMessage("default_prompt3_value"), autoSend: true },
+    { key: chrome.i18n.getMessage("default_prompt4_titile"), value: chrome.i18n.getMessage("default_prompt4_value"), autoSend: true },
+    { key: chrome.i18n.getMessage("default_prompt5_titile"), value: chrome.i18n.getMessage("default_prompt5_value"), autoSend: true },
   ];
 
-  // settings ストアをデフォルト値で初期化
-  let settings =
-    writable<{ key: string; value: string; autoSend: boolean }[]>(
-      defaultSettings,
-    );
+  let settings = writable<{ key: string; value: string; autoSend: boolean }[]>(defaultSettings);
   let maxCharsToSplit = writable<number>(4500);
 
   const open = async (currenturl: string) => {
@@ -77,14 +49,8 @@
           action: {
             type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
             responseHeaders: [
-              {
-                header: "x-frame-options",
-                operation: chrome.declarativeNetRequest.HeaderOperation.REMOVE,
-              },
-              {
-                header: "content-security-policy",
-                operation: chrome.declarativeNetRequest.HeaderOperation.REMOVE,
-              },
+              { header: "x-frame-options", operation: chrome.declarativeNetRequest.HeaderOperation.REMOVE },
+              { header: "content-security-policy", operation: chrome.declarativeNetRequest.HeaderOperation.REMOVE },
             ],
           },
           condition: {
@@ -99,13 +65,9 @@
         },
       ],
     });
-    if (!iframe) {
-      //  console.error("[Sidepanel] iframe not found");
-      return;
-    }
+    if (!iframe) return;
     iframe.src = currenturl;
     isIframeVisible = true;
-    // 一度だけ listener 登録
     if (!(window as any)._sidepanelListenerRegistered) {
       (window as any)._sidepanelListenerRegistered = true;
       chrome.runtime.onMessage.addListener(async (message) => {
@@ -132,10 +94,7 @@
   };
 
   const addSetting = () => {
-    settings.update((current) => [
-      ...current,
-      { key: "", value: "", autoSend: false },
-    ]);
+    settings.update((current) => [...current, { key: "", value: "", autoSend: false }]);
   };
 
   const removeSetting = (index: number) => {
@@ -153,16 +112,9 @@
   };
 
   const loadSettings = async () => {
-    const result = await chrome.storage.sync.get([
-      "userSettings",
-      "maxCharsToSplit",
-    ]);
-    if (result.userSettings) {
-      settings.set(result.userSettings);
-    }
-    if (result.maxCharsToSplit) {
-      maxCharsToSplit.set(result.maxCharsToSplit);
-    }
+    const result = await chrome.storage.sync.get(["userSettings", "maxCharsToSplit"]);
+    if (result.userSettings) settings.set(result.userSettings);
+    if (result.maxCharsToSplit) maxCharsToSplit.set(result.maxCharsToSplit);
   };
 
   onMount(() => {
@@ -174,180 +126,74 @@
   });
 </script>
 
-<!-- チャットメッセージ表示エリア -->
 <div class="panel">
   {#if isSettingsVisible}
     <div class="settings-overlay bg-body">
       <h2>{messages["sidepanel_setting"]}</h2>
       <div class="mb-3">
-        <label for="maxCharsToSplit" class="form-label"
-          >{messages["sidepanel_maxCharstoSplit"]}</label
-        >
-        <input
-          type="number"
-          class="form-control"
-          id="maxCharsToSplit"
-          placeholder="Label"
-          bind:value={$maxCharsToSplit}
-        />
+        <label for="maxCharsToSplit" class="form-label">{messages["sidepanel_maxCharstoSplit"]}</label>
+        <input type="number" class="form-control" id="maxCharsToSplit" placeholder="Label" bind:value={$maxCharsToSplit} />
       </div>
       {#each $settings as setting, index}
         <div class="setting-item border">
           <div class="mb-2">
-            <label for="key{index}" class="form-label"
-              >{messages["sidepanel_buttonLabel"]}</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="key{index}"
-              placeholder="Label"
-              bind:value={setting.key}
-            />
+            <label for="key{index}" class="form-label">{messages["sidepanel_buttonLabel"]}</label>
+            <input type="text" class="form-control" id="key{index}" placeholder="Label" bind:value={setting.key} />
           </div>
           <div class="mb-2">
-            <label for="Textarea{index}" class="form-label"
-              >{messages["sidepanel_promptTemplate"]}</label
-            >
-            <textarea
-              class="form-control"
-              id="Textarea{index}"
-              rows="3"
-              bind:value={setting.value}
-            ></textarea>
+            <label for="Textarea{index}" class="form-label">{messages["sidepanel_promptTemplate"]}</label>
+            <textarea class="form-control" id="Textarea{index}" rows="3" bind:value={setting.value}></textarea>
           </div>
           <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              bind:checked={setting.autoSend}
-              id="Checked_{index}"
-            />
-            <label class="form-check-label" for="Checked_{index}">
-              {messages["sidepanel_autoSend"]}
-            </label>
+            <input class="form-check-input" type="checkbox" bind:checked={setting.autoSend} id="Checked_{index}" />
+            <label class="form-check-label" for="Checked_{index}">{messages["sidepanel_autoSend"]}</label>
           </div>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            on:click={() => removeSetting(index)}
-            >{messages["sidepanel_delete"]}</button
-          >
+          <button type="button" class="btn btn-secondary" on:click={() => removeSetting(index)}>{messages["sidepanel_delete"]}</button>
         </div>
       {/each}
-      <button type="button" class="btn btn-secondary" on:click={addSetting}
-        >{messages["sidepanel_addButton"]}</button
-      >
-      <button type="button" class="btn btn-primary" on:click={saveSettings}
-        >{messages["sidepanel_save"]}</button
-      >
-      <button type="button" class="btn btn-secondary" on:click={toggleSettings}
-        >{messages["sidepanel_close"]}</button
-      >
+      <button type="button" class="btn btn-secondary" on:click={addSetting}>{messages["sidepanel_addButton"]}</button>
+      <button type="button" class="btn btn-primary" on:click={saveSettings}>{messages["sidepanel_save"]}</button>
+      <button type="button" class="btn btn-secondary" on:click={toggleSettings}>{messages["sidepanel_close"]}</button>
     </div>
   {/if}
   <div class="mainContent">
-    <!-- svelte-ignore a11y-missing-attribute -->
-    <iframe
-      id="preview"
-      class="preview"
-      class:d-none={!isIframeVisible}
-      allow="camera; clipboard-write; fullscreen; microphone; geolocation"
-    ></iframe>
+    <iframe id="preview" class="preview" class:d-none={!isIframeVisible} allow="camera; clipboard-write; fullscreen; microphone; geolocation"></iframe>
   </div>
   <div class="footer">
-    <!-- 左端：LLM 切替 -->
     <div class="footer-item footer-llm">
       <div class="dropdown">
-        <button
-          class="btn btn-sm custom-hover-secondary"
-          type="button"
-          id="llmDropdown"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          <!-- SVG アイコン -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            viewBox="0 0 16 16"
-          >
-            <path
-              d="M8 0a8 8 0 1 0 8 8A8 8 0 0 0 8 0zm3.5 9H4.5L8 5.5 11.5 9z"
-            />
+        <button class="btn btn-sm custom-hover-secondary" type="button" id="llmDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 0a8 8 0 1 0 8 8A8 8 0 0 0 8 0zm3.5 9H4.5L8 5.5 11.5 9z" />
           </svg>
         </button>
         <ul class="dropdown-menu" aria-labelledby="llmDropdown">
           {#each services as svc}
             <li>
-              <!-- svelte-ignore a11y-invalid-attribute -->
-              <a
-                class="dropdown-item"
-                href="#"
-                on:click={() => {
-                  currentService = svc;
-                  open(SERVICE_URL_MAP[svc]);
-                }}
-              >
-                {svc}
-              </a>
+              <a class="dropdown-item" href="#" on:click={() => { currentService = svc; open(SERVICE_URL_MAP[svc]); }}>{svc}</a>
             </li>
           {/each}
         </ul>
       </div>
     </div>
-
-    <!-- 真ん中：取り込みボタン -->
     <div class="footer-item footer-capture">
       <div class="dropdown">
-        <button
-          class="btn btn-primary btn-sm dropdown-toggle"
-          type="button"
-          id="captureDropdown"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
+        <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="captureDropdown" data-bs-toggle="dropdown" aria-expanded="false">
           {messages["sidepanel_capture"]}
         </button>
         <ul class="dropdown-menu" aria-labelledby="captureDropdown">
           {#each $settings as setting, index}
             <li>
-              <!-- svelte-ignore a11y-invalid-attribute -->
-              <a
-                class="dropdown-item"
-                href="#"
-                on:click={() => capture(setting.value, setting.autoSend)}
-              >
-                {setting.key}
-              </a>
+              <a class="dropdown-item" href="#" on:click={() => capture(setting.value, setting.autoSend)}>{setting.key}</a>
             </li>
           {/each}
         </ul>
       </div>
     </div>
-
-    <!-- 右端：設定（歯車）ボタン -->
     <div class="footer-item footer-settings">
-      <button
-        class="btn btn-sm custom-hover-secondary"
-        on:click={toggleSettings}
-        aria-label="設定"
-      >
-        <!-- 歯車アイコンSVG -->
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="currentColor"
-          class="bi bi-sliders"
-          viewBox="0 0 16 16"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z"
-          />
+      <button class="btn btn-sm custom-hover-secondary" on:click={toggleSettings} aria-label="設定">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sliders" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z" />
         </svg>
       </button>
     </div>
@@ -362,8 +208,7 @@
     margin: 0;
   }
   .mainContent {
-    flex: 1 1 auto; /*残りの領域全体を占有する*/
-    /*padding: 20px;*/
+    flex: 1 1 auto;
     position: relative;
   }
   iframe {
@@ -372,20 +217,17 @@
     height: 100%;
     box-sizing: border-box;
     margin: 0px;
-    display: block; /* iframeを常にブロック表示し、d-noneで隠す */
+    display: block;
   }
   .preview {
     border: 0;
   }
-  /* 既存の style ブロック内、.footer を以下に置き換えてください */
   .footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 1rem;
   }
-
-  /* 固定アイテム幅＋必要なら中央寄せの補助 */
   .footer-item {
     flex: 0 0 auto;
   }
@@ -415,12 +257,10 @@
     gap: 10px;
     padding: 20px;
   }
-
   .custom-hover-secondary {
     background-color: transparent;
     border: none;
   }
-
   .custom-hover-secondary:hover,
   .custom-hover-secondary:focus {
     background-color: var(--bs-secondary);

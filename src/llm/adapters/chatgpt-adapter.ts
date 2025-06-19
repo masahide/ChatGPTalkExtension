@@ -1,4 +1,3 @@
-// src/llm/adapters/chatgpt-adapter.ts
 import type { LLMAdapter } from '../llm-adapter';
 
 export class ChatGPTAdapter implements LLMAdapter {
@@ -11,7 +10,6 @@ export class ChatGPTAdapter implements LLMAdapter {
     }
 
     getChatInputSelector(): string {
-        // ChatGPTのチャット入力欄のセレクタ (例)
         return "#prompt-textarea";
     }
 
@@ -20,10 +18,8 @@ export class ChatGPTAdapter implements LLMAdapter {
         const textarea = document.querySelector(this.getChatInputSelector()) as HTMLTextAreaElement | null;
         if (textarea) {
             textarea.value = fullPrompt;
-            textarea.dispatchEvent(new Event('input', { bubbles: true })); // 必要に応じて入力イベントを発火
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
             textarea.focus();
-        } else {
-            console.warn("ChatGPTの入力エリアが見つかりませんでした。");
         }
     }
 }
