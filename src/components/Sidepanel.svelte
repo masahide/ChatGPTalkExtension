@@ -1,6 +1,10 @@
 <script lang="ts">
-  import type { ArticleSnapshot, OpenAIRequest } from "../lib/utils";
-  import { getSelection, toSummarySource } from "../lib/utils";
+  import type { ArticleSnapshot } from "../lib/utils";
+  import {
+    getSelection,
+    toSummarySource,
+    defaultMaxCharsToSplit,
+  } from "../lib/utils";
   import { onMount } from "svelte";
   import { writable, get } from "svelte/store";
 
@@ -30,7 +34,7 @@
     sidepanel_capture: "",
   };
   // デフォルトの設定値を定義
-  const defaultMaxCharsToSplit = 15000;
+
   const defaultSettings = [
     {
       key: chrome.i18n.getMessage("default_prompt1_titile"),
@@ -64,7 +68,7 @@
     writable<{ key: string; value: string; autoSend: boolean }[]>(
       defaultSettings,
     );
-  let maxCharsToSplit = writable<number>(4500);
+  let maxCharsToSplit = writable<number>(defaultMaxCharsToSplit);
 
   const open = async (currenturl: string) => {
     const iframe = document.getElementById("preview") as HTMLIFrameElement;
@@ -152,10 +156,17 @@
     toggleSettings();
   };
 
+  const selectService = async (svc: keyof typeof SERVICE_URL_MAP) => {
+    currentService = svc;
+    await chrome.storage.sync.set({ currentService: svc });
+    open(SERVICE_URL_MAP[svc]);
+  };
+
   const loadSettings = async () => {
     const result = await chrome.storage.sync.get([
       "userSettings",
       "maxCharsToSplit",
+      "currentService",
     ]);
     if (result.userSettings) {
       settings.set(result.userSettings);
@@ -163,11 +174,14 @@
     if (result.maxCharsToSplit) {
       maxCharsToSplit.set(result.maxCharsToSplit);
     }
+    if (result.currentService) {
+      currentService = result.currentService;
+    }
   };
 
-  onMount(() => {
+  onMount(async () => {
+    await loadSettings();
     open(SERVICE_URL_MAP[currentService]);
-    loadSettings();
     for (const key in messages) {
       messages[key] = chrome.i18n.getMessage(key);
     }
@@ -260,24 +274,13 @@
     <div class="footer-item footer-llm">
       <div class="dropdown">
         <button
-          class="btn btn-sm custom-hover-secondary"
+          class="btn btn-sm custom-hover-secondary dropdown-toggle"
           type="button"
           id="llmDropdown"
           data-bs-toggle="dropdown"
           aria-expanded="false"
         >
-          <!-- SVG アイコン -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            viewBox="0 0 16 16"
-          >
-            <path
-              d="M8 0a8 8 0 1 0 8 8A8 8 0 0 0 8 0zm3.5 9H4.5L8 5.5 11.5 9z"
-            />
-          </svg>
+          {currentService}
         </button>
         <ul class="dropdown-menu" aria-labelledby="llmDropdown">
           {#each services as svc}
@@ -286,10 +289,7 @@
               <a
                 class="dropdown-item"
                 href="#"
-                on:click={() => {
-                  currentService = svc;
-                  open(SERVICE_URL_MAP[svc]);
-                }}
+                on:click={() => selectService(svc)}
               >
                 {svc}
               </a>
@@ -380,7 +380,7 @@
   /* 既存の style ブロック内、.footer を以下に置き換えてください */
   .footer {
     display: flex;
-    justify-content: space-between;
+    /* justify-content: space-between; */
     align-items: center;
     padding: 0.5rem 1rem;
   }
@@ -389,6 +389,17 @@
   .footer-item {
     flex: 0 0 auto;
   }
+
+  .footer-llm,
+  .footer-settings {
+    flex: 1;
+  }
+
+  .footer-settings {
+    display: flex;
+    justify-content: flex-end;
+  }
+
   .setting-item {
     display: flex;
     flex-direction: column;

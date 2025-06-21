@@ -7,7 +7,7 @@ export type ArticleSnapshot = {
   id: string;
 };
 
-export const defaultMaxCharsToSplit = 4500;
+export const defaultMaxCharsToSplit = 15000;
 export const promptTemplate =
   "Condense the provided text into concise bulletpoints, selecting a fitting emoji for each, and respond in {{SELECTED_LANGUAGE}} using the content: {{CONTENT}}";
 

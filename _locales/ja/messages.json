@@ -1,8 +1,8 @@
 {
-  "name": { "message": "ChatGPTalk Sidebar" },
-  "namefull": { "message": "ChatGPTalk サイドバー" },
+  "name": { "message": "AI Sidebar" },
+  "namefull": { "message": "AIサイドバー" },
   "description": {
-    "message": "ChatGPTalk サイドバー拡張機能を使うと、ChatGPTを用いてWebページの本文を簡単に要約できます。"
+    "message": "AIサイドバー拡張機能を使うと、ChatGPT(とGemini)を用いてWebページの本文を簡単に要約できます。"
   },
   "default_prompt1_titile": { "message": "要約" },
   "default_prompt1_value": {
