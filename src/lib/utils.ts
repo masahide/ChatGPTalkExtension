@@ -7,7 +7,7 @@ export type ArticleSnapshot = {
   id: string;
 };
 
-export const defaultMaxCharsToSplit = 4500;
+export const defaultMaxCharsToSplit = 15000;
 export const promptTemplate =
   "Condense the provided text into concise bulletpoints, selecting a fitting emoji for each, and respond in {{SELECTED_LANGUAGE}} using the content: {{CONTENT}}";
 
@@ -18,12 +18,26 @@ export enum ArticleSnapshotType {
   Unknown = "Unknown",
 }
 
-export enum TextType {
-  Selection = "Selection",
-  Transcription = "Transcription",
-  FullText = "FullText",
+export enum MessageTo {
+  MainWindow = "MainWindow",
+  ChatWindow = "ChatWindow",
+  Sidebar = "Sidebar",
+}
+
+export enum MessageType {
+  // to MainWindow
+  SidebarCaption = "SidebarCaption", // sidebarのキャプションボタンをクリックした時のメッセージ
+  GetSubTitlesURL = "GetSubTitlesURL", // MainWindowでYouTubeの字幕のURLを取得する時のメッセージ
+
+  // to ChatWindow
+  Selection = "Selection", // MainWindowでテキスト選択されている時のメッセージ
+  Transcription = "Transcription", // MainWindowでYouTubeの動画の字幕を取得する時のメッセージ
+  FullText = "FullText", // MainWindowでページ全体のテキストを取得する時のメッセージ
 }
 export type injectData = {
+  to: MessageTo;
+  type: MessageType;
+  windowID: number;
   source: summarySourceText;
   prompt: string;
   autoSend: boolean;
@@ -35,27 +49,6 @@ export type summarySourceText = {
   html: string;
   url: string;
 };
-export function getSelection(
-  prompt: string,
-  autoSend: boolean,
-  maxCharsToSplit: number,
-) {
-  chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-    for (let i = 0; i < tabs.length; i++) {
-      let tabid = tabs[i].id;
-      if (tabid) {
-        chrome.tabs.sendMessage(tabid, {
-          name: TextType.Selection,
-          windowID: tabid,
-          prompt: prompt,
-          autoSend: autoSend,
-          maxCharsToSplit: maxCharsToSplit,
-        });
-      }
-      //console.log(`getSelection tabid:${tabid} prompt:${prompt}`);
-    }
-  });
-}
 
 export function replaceTemplateVariables(
   template: string,
@@ -74,9 +67,32 @@ function secondsToHMS(seconds: number): string {
     .map((val) => val.toString().padStart(2, "0"))
     .join(":");
 }
-function parseXmlToTranscript(xmlString: string): string {
+
+interface Seg {
+  utf8: string;
+}
+interface Event {
+  segs?: Seg[];
+}
+interface Data {
+  events: Event[];
+}
+
+const extractUtf8Text = (raw: string): string => {
+  const data: Data = JSON.parse(raw);
+  return data.events
+    .flatMap((event) => event.segs ?? []) // segs があるイベントだけ抽出・展開
+    .map((seg) => seg.utf8) // utf8 フィールドだけを抽出
+    .filter((utf8): utf8 is string => typeof utf8 === "string") // 明示的にstring型のみ通す
+    .join(""); // 全て連結して1つの文字列に
+};
+function parseTranscript(raw: string): string {
+  const text = extractUtf8Text(raw); // ここでUTF-8テキストを抽出
+  if (text.length > 0) {
+    return text; // UTF-8テキストが存在する場合はそれを返す
+  }
   const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+  const xmlDoc = parser.parseFromString(raw, "text/xml");
   const texts = xmlDoc.getElementsByTagName("text");
 
   let transcriptString = "";
@@ -100,7 +116,7 @@ export function toSummarySource(snapshot: ArticleSnapshot): summarySourceText {
     case ArticleSnapshotType.Youtube:
       return {
         title: snapshot.title,
-        text: parseXmlToTranscript(snapshot.content),
+        text: parseTranscript(snapshot.content),
         html: snapshot.content,
         url: snapshot.url,
       };
