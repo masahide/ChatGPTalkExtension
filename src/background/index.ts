@@ -1,7 +1,20 @@
+import { MessageType, MessageTo } from "../lib/utils";
+
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
+chrome.webRequest.onBeforeRequest.addListener(
+  (event) => {
+    event.tabId &&
+      chrome.tabs.sendMessage(event.tabId, {
+        type: MessageType.GetSubTitlesURL,
+        to: MessageTo.MainWindow,
+        url: event.url,
+      });
+  },
+  { urls: ["*://*.youtube.com/api/timedtext?*"] },
+);
 /*
 function setupContextMenu() {
   chrome.contextMenus.create({

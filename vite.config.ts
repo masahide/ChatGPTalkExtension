@@ -59,6 +59,7 @@ const manifest = defineManifest({
     "sidePanel",
     "tabs",
     "declarativeNetRequestWithHostAccess",
+    "webRequest",
     //"scripting", // https://stackoverflow.com/questions/10994324/chrome-extension-content-script-re-injection-after-upgrade-or-install
     //"activeTab",
     //"contextMenus",

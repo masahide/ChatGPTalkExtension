@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { ArticleSnapshot } from "../lib/utils";
   import {
-    getSelection,
     toSummarySource,
     defaultMaxCharsToSplit,
+    MessageType,
+    MessageTo,
   } from "../lib/utils";
   import { onMount } from "svelte";
   import { writable, get } from "svelte/store";
@@ -114,9 +115,13 @@
       (window as any)._sidepanelListenerRegistered = true;
       chrome.runtime.onMessage.addListener(async (message) => {
         const snapshot = message.data as ArticleSnapshot;
+        //console.log(`[Sidepanel] message received: ${message.type}`);
+        const source = toSummarySource(snapshot);
         iframe.contentWindow?.postMessage(
           {
-            source: toSummarySource(snapshot),
+            to: MessageTo.ChatWindow,
+            type: message.type,
+            source: source,
             prompt: message.prompt,
             autoSend: message.autoSend,
             maxCharsToSplit: message.maxCharsToSplit,
@@ -127,8 +132,25 @@
     }
   };
 
-  const capture = (value: string, autoSend: boolean) => {
-    getSelection(value, autoSend, get(maxCharsToSplit));
+  const capture = (prompt: string, autoSend: boolean) => {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+      for (let i = 0; i < tabs.length; i++) {
+        let tabid = tabs[i].id;
+        if (tabid) {
+          console.log(
+            `[Sidepanel] capture: tabid: ${tabid}, prompt: ${prompt}, autoSend: ${autoSend}`,
+          );
+          chrome.tabs.sendMessage(tabid, {
+            to: MessageTo.MainWindow,
+            type: MessageType.SidebarCaption,
+            windowID: tabid,
+            prompt: prompt,
+            autoSend: autoSend,
+            maxCharsToSplit: get(maxCharsToSplit),
+          });
+        }
+      }
+    });
   };
 
   const toggleSettings = () => {

@@ -1,6 +1,6 @@
 // console.log("[GeminiInjector] script loaded");
 import type { injectData } from "../lib/utils";
-import { replaceTemplateVariables } from "../lib/utils";
+import { MessageTo, replaceTemplateVariables } from "../lib/utils";
 
 let lang = document.documentElement.lang || navigator.language || "en";
 
@@ -31,30 +31,28 @@ const splitTextAtNearestNewline = (
 };
 
 const injectText = (text: string, autoSend: boolean) => {
-  // console.log("[chatgptInjector] injectText() start", { text, autoSend });
-  //const contentEditableElement = document.querySelector( '[contenteditable="true"]',) as HTMLElement;
-  const contentEditableElement = document.getElementById('prompt-textarea') as HTMLElement;
-  if (contentEditableElement) {
-    contentEditableElement.focus(); // フォーカスを合わせる
+  console.log("[chatgptInjector] injectText() start", { text, autoSend });
+  const editor = document.getElementById("prompt-textarea") as HTMLElement;
+  if (!editor) return console.warn("ChatGPT editor not found");
+  editor.focus(); // フォーカスを合わせる
 
-    const selection = window.getSelection();
-    const range = document.createRange();
-    if (selection) {
-      // contentEditable内のカーソル位置を取得
-      range.selectNodeContents(contentEditableElement);
-      range.collapse(false); // カーソルを末尾に移動
-      // 新しいテキストノードを作成してカーソル位置に挿入
-      const textNode = document.createTextNode(text);
-      range.insertNode(textNode);
-      // カーソルを挿入したテキストの後に移動させる
-      range.setStartAfter(textNode);
-      range.setEndAfter(textNode);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
+  const selection = window.getSelection();
+  const range = document.createRange();
+  if (selection) {
+    // contentEditable内のカーソル位置を取得
+    range.selectNodeContents(editor);
+    range.collapse(false); // カーソルを末尾に移動
+    // 新しいテキストノードを作成してカーソル位置に挿入
+    const textNode = document.createTextNode(text);
+    range.insertNode(textNode);
+    // カーソルを挿入したテキストの後に移動させる
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
   setTimeout(() => {
-    contentEditableElement.scrollTop = contentEditableElement.scrollHeight;
+    editor.scrollTop = editor.scrollHeight;
     //console.log("autoSend", autoSend);
     if (autoSend) {
       const sendButton = document.querySelector(
@@ -68,7 +66,7 @@ const injectText = (text: string, autoSend: boolean) => {
   }, 300);
 };
 
-const addButton = (
+const addMoreButton = (
   text: string,
   prompt: string,
   autoSend: boolean,
@@ -89,21 +87,14 @@ const addButton = (
   button.style.padding = "0 5px";
   document.body.appendChild(button);
 
-  button.addEventListener("click", () => {
-    const [firstPart, remainingPart] = splitTextAtNearestNewline(
-      text,
-      maxCharsToSplit,
-    );
-    const variables = {
-      TITLE: title,
-      CONTENT: firstPart,
-      URL: url,
-    };
-    injectText(replaceTemplateVariables(prompt, variables), autoSend);
+  button.onclick = () => {
+    const [first, rest] = splitTextAtNearestNewline(text, maxCharsToSplit);
+    const vars = { TITLE: title, CONTENT: first, URL: url, HTML: "" };
+    injectText(replaceTemplateVariables(prompt, vars), autoSend);
     button.remove();
-    if (remainingPart.length > 0) {
-      addButton(
-        remainingPart.trim(),
+    if (rest.length)
+      addMoreButton(
+        rest.trim(),
         prompt,
         autoSend,
         maxCharsToSplit,
@@ -111,8 +102,7 @@ const addButton = (
         url,
         no + 1,
       );
-    }
-  });
+  };
 };
 
 // console.log("load chatgpt.ts");
@@ -120,34 +110,34 @@ if (window !== window.top) {
   //console.log("window !== window.top. window: ", window);
   window.addEventListener("message", (response) => {
     const data = response.data as injectData;
+    if (!data || data.to !== MessageTo.ChatWindow) {
+      // console.log("data.to !== ChatWindow. data: ", data);
+      return;
+    }
+    if (!data?.source?.text) return;
     // console.log("Event data: ", data);
-    if (data.source.title && data.source.text) {
-      const [firstPart, remainingPart] = splitTextAtNearestNewline(
-        cleanUpText(data.source.text),
-        data.maxCharsToSplit,
-      );
-      const variables = {
-        TITLE: data.source.title,
-        CONTENT: firstPart,
-        URL: data.source.url,
-        HTML: data.source.html,
-        SELECTED_LANGUAGE: lang,
-      };
-      injectText(
-        replaceTemplateVariables(data.prompt, variables),
+    const [firstPart, remainingPart] = splitTextAtNearestNewline(
+      cleanUpText(data.source.text),
+      data.maxCharsToSplit,
+    );
+    const variables = {
+      TITLE: data.source.title,
+      CONTENT: firstPart,
+      URL: data.source.url,
+      HTML: data.source.html,
+      SELECTED_LANGUAGE: lang,
+    };
+    injectText(replaceTemplateVariables(data.prompt, variables), data.autoSend);
+    if (remainingPart.length > 0) {
+      addMoreButton(
+        remainingPart.trim(),
+        data.prompt,
         data.autoSend,
+        data.maxCharsToSplit,
+        data.source.title,
+        data.source.url,
+        1,
       );
-      if (remainingPart.length > 0) {
-        addButton(
-          remainingPart.trim(),
-          data.prompt,
-          data.autoSend,
-          data.maxCharsToSplit,
-          data.source.title,
-          data.source.url,
-          1,
-        );
-      }
     }
   });
 }
