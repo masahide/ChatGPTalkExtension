@@ -59,14 +59,7 @@ export function replaceTemplateVariables(
     return currentTemplate.replace(regex, variables[key]);
   }, template);
 }
-function secondsToHMS(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const sec = Math.floor(seconds % 60);
-  return [hours, minutes, sec]
-    .map((val) => val.toString().padStart(2, "0"))
-    .join(":");
-}
+
 
 interface Seg {
   utf8: string;
