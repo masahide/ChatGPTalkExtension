@@ -1,20 +1,49 @@
+# Repository Overview
+Svelte + TypeScript Chrome extension. Below: dev commands, style guide, and file map.
 
-## Build, Lint, and Test Commands
+## 1. Dev Commands
+- **Build**: `npm run build` — production bundle  
+- **Lint**: `npm run check` — ESLint  
+- **Format**: `npm run format` — Prettier  
+- **Test**: _(none yet)_
 
-- **Build:** `npm run build`
-- **Lint:** `npm run check`
-- **Format:** `npm run format`
-- **Test:** No test command found.
+## 2. Style Guide
+- Prettier (`.prettierrc`): 2-space indent, semicolons required  
+- TypeScript (`target: ESNext`, `checkJs: true`)  
+- ESNext import/export  
+- Svelte conventions; no global error-handling pattern (TBD)
 
-## Code Style Guidelines
+## 3. Source Tree
+```
 
-- **Formatting:** Use Prettier with the provided configuration (`.prettierrc`).
-  - Indentation: 2 spaces.
-  - Semicolons: true.
-- **Imports:** Use ESNext module syntax.
-- **Types:**
-    - Use TypeScript and enable `checkJs`.
-    - `target`: `ESNext`.
-- **Naming Conventions:** Follow standard TypeScript/Svelte conventions.
-- **Error Handling:** No specific error handling conventions found.
-- **Framework:** Svelte
+src/
+├ app.css              # global light/dark styles
+├ vite-env.d.ts        # Vite env types
+│
+├ background/index.ts  # service-worker opens side-panel
+│
+├ components/Sidepanel.svelte
+│   └─ UI: AI provider iframe, settings, capture buttons
+│
+├ contentscript/
+│   ├ index.ts         # extract article/selection/YT transcript
+│   ├ chatgpt.ts       # inject text → ChatGPT, chunk & send
+│   └ gemini.ts        # inject text → Gemini, chunk & send
+│
+├ lib/utils.ts         # shared types + helpers
+│
+└ sidepanel/
+├ index.html       # Bootstrap shell, mounts Svelte
+└ index.ts         # boots Sidepanel.svelte
+
+```
+
+### Key Helpers (`lib/utils.ts`)
+`ArticleSnapshot`, `OpenAIRequest/Response`, enums (`ArticleSnapshotType`, `TextType`), plus  
+`getSelection`, `replaceTemplateVariables`, `toSummarySource`, `parseXmlToTranscript`.
+
+## 4. Next Steps
+- Add `npm run test` + initial tests  
+- Decide on project-wide error policy  
+- Keep this doc current
+```
