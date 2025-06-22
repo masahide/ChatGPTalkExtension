@@ -1,8 +1,8 @@
 {
-  "name": { "message": "ChatGPTalk Sidebar" },
-  "namefull": { "message": "ChatGPTalk Sidebar" },
+  "name": { "message": "AI Sidebar" },
+  "namefull": { "message": "AI Sidebar" },
   "description": {
-    "message": "Using the ChatGPTalk sidebar extension allows you to easily summarize the text of web pages using ChatGPT."
+    "message": "Using the AI sidebar extension allows you to easily summarize the text of web pages using ChatGPT(and Gemini)."
   },
   "default_prompt1_titile": { "message": "Summary" },
   "default_prompt1_value": {
